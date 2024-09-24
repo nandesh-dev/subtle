@@ -4,19 +4,15 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nandesh-dev/subtle/internal/subtitle"
 	"github.com/nandesh-dev/subtle/internal/video"
 )
-
-type SubtitleFile struct {
-	Path   string
-	Format SubtitleFileFormat
-}
 
 type Directory struct {
 	Path      string
 	Childrens []Directory
 	Videos    []video.VideoFile
-	Subtitles []SubtitleFile
+	Subtitles []subtitle.SubtitleFile
 }
 
 var videoFormatLookup = map[string]video.VideoFileFileFormat{
@@ -26,24 +22,13 @@ var videoFormatLookup = map[string]video.VideoFileFileFormat{
 	".mov": video.MOV,
 }
 
-type SubtitleFileFormat int
-
-const (
-	SRT SubtitleFileFormat = iota
-	ASS
-	SSA
-	IDX
-	SUB
-	PGS
-)
-
-var subtitleFormatLookup = map[string]SubtitleFileFormat{
-	".srt": SRT,
-	".ass": ASS,
-	".ssa": SSA,
-	".idx": IDX,
-	".sub": SUB,
-	".PGS": PGS,
+var subtitleFormatLookup = map[string]subtitle.SubtitleFileFormat{
+	".srt": subtitle.SRT,
+	".ass": subtitle.ASS,
+	".ssa": subtitle.SSA,
+	".idx": subtitle.IDX,
+	".sub": subtitle.SUB,
+	".PGS": subtitle.PGS,
 }
 
 func ReadDirectory(path string) (*Directory, error) {
@@ -54,7 +39,7 @@ func ReadDirectory(path string) (*Directory, error) {
 
 	childrenDirectories := make([]Directory, 0)
 	videoFiles := make([]video.VideoFile, 0)
-	subtitleFiles := make([]SubtitleFile, 0)
+	subtitleFiles := make([]subtitle.SubtitleFile, 0)
 
 	for _, entry := range files {
 		if entry.IsDir() {
@@ -80,7 +65,7 @@ func ReadDirectory(path string) (*Directory, error) {
 
 		subtitleFormat, isSubtitleFile := subtitleFormatLookup[extension]
 		if isSubtitleFile {
-			subtitleFile := SubtitleFile{
+			subtitleFile := subtitle.SubtitleFile{
 				Path:   filepath.Join(path, entry.Name()),
 				Format: subtitleFormat,
 			}
