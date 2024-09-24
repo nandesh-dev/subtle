@@ -1,22 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nandesh-dev/subtle/internal/filemanager"
+	"github.com/nandesh-dev/subtle/internal/subtitle/srt"
 )
 
 func main() {
-	directory, err := filemanager.ReadDirectory(".")
+	dir, _ := filemanager.ReadDirectory(".")
+
+	stats, _ := dir.Videos[0].Stats()
+
+	subtitle, err := dir.Videos[0].ExtractSubtitle(stats.Streams[0])
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	stats, err := directory.Videos[0].Stats()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Stats: %v\n", stats)
+	srt.EncodeSRTSubtitles(*subtitle)
 }
