@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/nandesh-dev/subtle/internal/subtitle"
 	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
 	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
@@ -19,28 +18,15 @@ type displaySet struct {
 	ObjectDefinitionSegments       map[int]*segments.ObjectDefinitionSegment
 }
 
-func parseDisplaySets(displaySets []displaySet) (*subtitle.Subtitle, error) {
-	s := subtitle.Subtitle{
-		ImageStream: make([]subtitle.ImageSubtitleSegment, 0),
+func NewDisplaySet() displaySet {
+	return displaySet{
+		PaletteDefinitionSegments: make(map[int]*segments.PaletteDefinitionSegment),
+		WindowDefinitionSegments:  make(map[int]*segments.Window),
+		ObjectDefinitionSegments:  make(map[int]*segments.ObjectDefinitionSegment),
 	}
-
-	for _, d := range displaySets {
-		imageSubtitleSegment, err := d.parse()
-		if err != nil {
-			return nil, err
-		}
-
-		if imageSubtitleSegment == nil {
-			continue
-		}
-
-		s.ImageStream = append(s.ImageStream, *imageSubtitleSegment)
-	}
-
-	return &s, nil
 }
 
-func (d *displaySet) parse() (*subtitle.ImageSubtitleSegment, error) {
+func (d *displaySet) parse() ([]image.Image, error) {
 	if len(d.PresentationCompositionSegment.CompositionObjects) == 0 {
 		return nil, nil
 	}
@@ -94,10 +80,7 @@ func (d *displaySet) parse() (*subtitle.ImageSubtitleSegment, error) {
 		images = append(images, img)
 	}
 
-	return &subtitle.ImageSubtitleSegment{
-		Start:  d.Header.PTS,
-		Images: images,
-	}, nil
+	return images, nil
 }
 
 func decodeRLEImageData(data []byte) ([][]int, error) {

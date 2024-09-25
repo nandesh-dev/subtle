@@ -1,8 +1,9 @@
 package subtitle
 
 import (
-	"image"
 	"time"
+
+	"golang.org/x/text/language"
 )
 
 type SubtitleFile struct {
@@ -21,11 +22,25 @@ const (
 	PGS
 )
 
-type ImageSubtitleSegment struct {
-	Start  time.Duration
-	Images []image.Image
+type SubtitleSegment struct {
+	Start *time.Duration
+	End   *time.Duration
+	Text  string
+	Style struct{}
+}
+
+type SubtitleStream struct {
+	Langauge language.Tag
+	Segments []SubtitleSegment
 }
 
 type Subtitle struct {
-	ImageStream []ImageSubtitleSegment
+	Streams []SubtitleStream
+}
+
+type RawSubtitleStream struct {
+	Index         int
+	Format        string
+	Language      language.Tag
+	VideoFilePath string
 }

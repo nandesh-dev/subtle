@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/nandesh-dev/subtle/internal/filemanager"
-	"github.com/nandesh-dev/subtle/internal/subtitle/srt"
+	"github.com/nandesh-dev/subtle/internal/subtitle/parser"
 )
 
 func main() {
@@ -12,11 +13,11 @@ func main() {
 
 	stats, _ := dir.Videos[0].Stats()
 
-	subtitle, err := dir.Videos[0].ExtractSubtitle(stats.Streams[0])
+	subtitle, err := parser.ParseRawSubtitleStream(stats.Streams[0])
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	srt.EncodeSRTSubtitles(*subtitle)
+	fmt.Printf("Subtitle: %v", subtitle)
 }
