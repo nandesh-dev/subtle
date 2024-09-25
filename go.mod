@@ -5,6 +5,7 @@ go 1.22.6
 require (
 	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/u2takey/ffmpeg-go v0.5.0
+	golang.org/x/text v0.18.0
 )
 
 require (

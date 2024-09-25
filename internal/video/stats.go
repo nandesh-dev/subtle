@@ -5,16 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/nandesh-dev/subtle/internal/subtitle"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
+	"golang.org/x/text/language"
 )
 
-type Stream struct {
-	Index  int
-	Format string
-}
-
 type VideoStats struct {
-	Streams []Stream
+	Streams []subtitle.RawSubtitleStream
 }
 
 func (v *VideoFile) Stats() (*VideoStats, error) {
@@ -35,7 +32,7 @@ func (v *VideoFile) Stats() (*VideoStats, error) {
 		return nil, errors.New(fmt.Sprintf("Error parsing probe stream JSON for file %v", v.Path))
 	}
 
-	streams := make([]Stream, 0)
+	streams := make([]subtitle.RawSubtitleStream, 0)
 
 	for _, rawStream := range rawStreams {
 		codecType, codecTypeExist := rawStream.(map[string]any)["codec_type"].(string)
@@ -57,9 +54,26 @@ func (v *VideoFile) Stats() (*VideoStats, error) {
 			return nil, errors.New(fmt.Sprintf("Error parsing probe stream index JSON for file %v", v.Path))
 		}
 
-		stream := Stream{
-			Index:  int(rawIndex),
-			Format: codecName,
+		lang := language.English
+
+		tags, tagsExist := rawStream.(map[string]any)["tags"].(map[string]any)
+		if tagsExist {
+			rawLanguage, langaugeExist := tags["language"].(string)
+
+			if langaugeExist {
+				langTag, err := language.Parse(rawLanguage)
+
+				if err == nil {
+					lang = langTag
+				}
+			}
+		}
+
+		stream := subtitle.RawSubtitleStream{
+			Index:         int(rawIndex),
+			Format:        codecName,
+			Language:      lang,
+			VideoFilePath: v.Path,
 		}
 
 		streams = append(streams, stream)
