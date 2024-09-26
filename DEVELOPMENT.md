@@ -1,5 +1,13 @@
 # Development
 
+## Docker Image
+
+### Volumes
+
+|Path|Use|
+|---|---|
+|`/media`|Directory where all your media content is stored|
+
 ## References
 
 ### Golang Packages
