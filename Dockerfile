@@ -15,7 +15,7 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN GOOS=linux GOARCH=amd64 go build -o /bin/subtle ./cmd/subtle
+RUN go build -o /bin/subtle ./cmd/subtle
 
 RUN apk del go
 
