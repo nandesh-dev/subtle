@@ -21,4 +21,4 @@ jobs:
               pass: ${{ secrets.DOCKERHUB_TOKEN }}
               slug: nandeshdev/subtle
               readme: ./README.md
-              description: A Fauxmo frontend that facilitates multi-device control via Alexa services.
+              description: Your tool to manage all the subtitles in your personal media library
