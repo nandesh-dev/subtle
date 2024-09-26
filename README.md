@@ -20,7 +20,6 @@ Your tool to manage all the subtitles in your personal media library. Subtle hel
 go build ./cmd/tui
 ```
 
-
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

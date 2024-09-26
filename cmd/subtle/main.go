@@ -9,9 +9,15 @@ import (
 )
 
 func main() {
-	dir, _ := filemanager.ReadDirectory(".")
+	dir, _ := filemanager.ReadDirectory("/media")
 
-	stats, _ := dir.Videos[0].Stats()
+	stats, err := dir.Videos[0].Stats()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Stats: %v", stats)
 
 	subtitle, err := parser.ParseRawSubtitleStream(stats.Streams[0])
 
