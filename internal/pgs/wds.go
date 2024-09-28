@@ -1,14 +1,11 @@
-package decoder
+package pgs
 
 import (
 	"encoding/binary"
 	"fmt"
-
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
 
-func ReadWindowDefinitionSegment(reader *reader.Reader, header *segments.Header) (*segments.WindowDefinitionSegment, error) {
+func ReadWindowDefinitionSegment(reader *Reader, header *Header) (*WindowDefinitionSegment, error) {
 	reader.SetLimit(header.SegmentSize)
 	defer reader.SkipPastLimit()
 
@@ -20,7 +17,7 @@ func ReadWindowDefinitionSegment(reader *reader.Reader, header *segments.Header)
 
 	numberOfWindows := int(rawNumberOfWindows)
 
-	windows := make([]segments.Window, 0, numberOfWindows)
+	windows := make([]Window, 0, numberOfWindows)
 
 	for len(windows) < numberOfWindows {
 		buf, err := reader.Read(9)
@@ -47,7 +44,7 @@ func ReadWindowDefinitionSegment(reader *reader.Reader, header *segments.Header)
 			binary.BigEndian.Uint16(buf[7:9]),
 		)
 
-		window := segments.Window{
+		window := Window{
 			WindowID:                 windowID,
 			WindowHorizontalPosition: windowHorizontalPosition,
 			WindowVerticalPosition:   windowVerticalPosition,
@@ -58,7 +55,7 @@ func ReadWindowDefinitionSegment(reader *reader.Reader, header *segments.Header)
 		windows = append(windows, window)
 	}
 
-	return &segments.WindowDefinitionSegment{
+	return &WindowDefinitionSegment{
 		Windows: windows,
 	}, nil
 }

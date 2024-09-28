@@ -1,27 +1,9 @@
-package segments
+package pgs
 
 import (
 	"image/color"
-	"time"
 )
 
-type SegmentType int
-
-const (
-	PDS SegmentType = iota
-	ODS
-	PCS
-	WDS
-	END
-)
-
-const INV SegmentType = -1
-
-type Header struct {
-	PTS         time.Duration
-	SegmentType SegmentType
-	SegmentSize int
-}
 type LastInSquenceFlag int
 
 const (

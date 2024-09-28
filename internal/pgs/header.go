@@ -1,16 +1,46 @@
-package decoder
+package pgs
 
 import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
 	"time"
-
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
 
-func ReadHeader(reader *reader.Reader) (*segments.Header, error) {
+type SegmentType int
+
+const (
+	PDS SegmentType = iota
+	ODS
+	PCS
+	WDS
+	END
+)
+
+type Header struct {
+	PTS         time.Duration
+	SegmentType SegmentType
+	SegmentSize int
+}
+
+func mapSegmentType(bt byte) (SegmentType, error) {
+	switch bt {
+	case 0x14:
+		return PDS, nil
+	case 0x15:
+		return ODS, nil
+	case 0x16:
+		return PCS, nil
+	case 0x17:
+		return WDS, nil
+	case 0x80:
+		return END, nil
+	}
+
+	return END, fmt.Errorf("Invalid segment type: %v", bt)
+}
+
+func ReadHeader(reader *Reader) (*Header, error) {
 	reader.SetLimit(13)
 
 	defer reader.RemoveLimit()
@@ -29,23 +59,9 @@ func ReadHeader(reader *reader.Reader) (*segments.Header, error) {
 		int(binary.BigEndian.Uint32(buf[2:6])) * 1000 / 90,
 	)
 
-	segmentType := segments.INV
-
-	switch buf[10] {
-	case 0x14:
-		segmentType = segments.PDS
-	case 0x15:
-		segmentType = segments.ODS
-	case 0x16:
-		segmentType = segments.PCS
-	case 0x17:
-		segmentType = segments.WDS
-	case 0x80:
-		segmentType = segments.END
-	}
-
-	if segmentType == segments.INV {
-		return nil, fmt.Errorf("Invalid segment type %v", buf[10])
+	segmentType, err := mapSegmentType(buf[10])
+	if err != nil {
+		return nil, err
 	}
 
 	segmentSize := 0
@@ -61,7 +77,7 @@ func ReadHeader(reader *reader.Reader) (*segments.Header, error) {
 		)
 	}
 
-	return &segments.Header{
+	return &Header{
 		PTS:         pts,
 		SegmentType: segmentType,
 		SegmentSize: segmentSize,

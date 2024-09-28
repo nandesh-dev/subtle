@@ -11,18 +11,18 @@ import (
 type Directory struct {
 	Path      string
 	Childrens []Directory
-	Videos    []video.VideoFile
-	Subtitles []subtitle.SubtitleFile
+	Videos    []video.File
+	Subtitles []subtitle.File
 }
 
-var videoFormatLookup = map[string]video.VideoFileFileFormat{
+var videoFormatLookup = map[string]video.Format{
 	".mp4": video.MP4,
 	".mkv": video.MKV,
 	".avi": video.AVI,
 	".mov": video.MOV,
 }
 
-var subtitleFormatLookup = map[string]subtitle.SubtitleFileFormat{
+var subtitleFormatLookup = map[string]subtitle.Format{
 	".srt": subtitle.SRT,
 	".ass": subtitle.ASS,
 	".ssa": subtitle.SSA,
@@ -38,8 +38,8 @@ func ReadDirectory(path string) (*Directory, error) {
 	}
 
 	childrenDirectories := make([]Directory, 0)
-	videoFiles := make([]video.VideoFile, 0)
-	subtitleFiles := make([]subtitle.SubtitleFile, 0)
+	videoFiles := make([]video.File, 0)
+	subtitleFiles := make([]subtitle.File, 0)
 
 	for _, entry := range files {
 		if entry.IsDir() {
@@ -55,7 +55,7 @@ func ReadDirectory(path string) (*Directory, error) {
 
 		videoFormat, isVideoFile := videoFormatLookup[extension]
 		if isVideoFile {
-			videoFile := video.VideoFile{
+			videoFile := video.File{
 				Path:   filepath.Join(path, entry.Name()),
 				Format: videoFormat,
 			}
@@ -65,7 +65,7 @@ func ReadDirectory(path string) (*Directory, error) {
 
 		subtitleFormat, isSubtitleFile := subtitleFormatLookup[extension]
 		if isSubtitleFile {
-			subtitleFile := subtitle.SubtitleFile{
+			subtitleFile := subtitle.File{
 				Path:   filepath.Join(path, entry.Name()),
 				Format: subtitleFormat,
 			}

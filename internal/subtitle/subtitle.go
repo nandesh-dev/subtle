@@ -6,39 +6,23 @@ import (
 	"golang.org/x/text/language"
 )
 
-type SubtitleFile struct {
-	Path   string
-	Format SubtitleFileFormat
-}
-
-type SubtitleFileFormat int
-
-const (
-	SRT SubtitleFileFormat = iota
-	ASS
-	SSA
-	IDX
-	SUB
-	PGS
-)
-
-type SubtitleSegment struct {
+type Segment struct {
 	Start *time.Duration
 	End   *time.Duration
 	Text  string
 	Style struct{}
 }
 
-type SubtitleStream struct {
+type Stream struct {
 	Langauge language.Tag
-	Segments []SubtitleSegment
+	Segments []Segment
 }
 
 type Subtitle struct {
-	Streams []SubtitleStream
+	Streams []Stream
 }
 
-type RawSubtitleStream struct {
+type RawStream struct {
 	Index         int
 	Format        string
 	Language      language.Tag

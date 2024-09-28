@@ -1,4 +1,4 @@
-package video
+package subtitle
 
 type File struct {
 	Path   string
@@ -8,8 +8,10 @@ type File struct {
 type Format int
 
 const (
-	MP4 Format = iota
-	MKV
-	AVI
-	MOV
+	SRT Format = iota
+	ASS
+	SSA
+	IDX
+	SUB
+	PGS
 )

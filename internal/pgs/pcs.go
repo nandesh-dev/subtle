@@ -1,21 +1,18 @@
-package decoder
+package pgs
 
 import (
 	"encoding/binary"
 	"fmt"
-
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
 
-func ReadPresentationCompositionSegment(reader *reader.Reader, header *segments.Header) (*segments.PresentationCompositionSegment, error) {
+func ReadPresentationCompositionSegment(reader *Reader, header *Header) (*PresentationCompositionSegment, error) {
 	reader.SetLimit(header.SegmentSize)
 	defer reader.SkipPastLimit()
 
 	buf, err := reader.Read(11)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error reading PCS segment %v", err)
+		return nil, fmt.Errorf("Error reading data: %v", err)
 	}
 
 	width := int(
@@ -39,7 +36,7 @@ func ReadPresentationCompositionSegment(reader *reader.Reader, header *segments.
 	paletteID := int(buf[9])
 
 	compositionObjectCount := int(buf[10])
-	compositionObjects := make([]segments.CompositionObject, 0, compositionObjectCount)
+	compositionObjects := make([]CompositionObject, 0, compositionObjectCount)
 
 	for len(compositionObjects) < compositionObjectCount {
 		compositionObject, err := readCompositionObject(reader)
@@ -50,7 +47,7 @@ func ReadPresentationCompositionSegment(reader *reader.Reader, header *segments.
 		compositionObjects = append(compositionObjects, *compositionObject)
 	}
 
-	return &segments.PresentationCompositionSegment{
+	return &PresentationCompositionSegment{
 		Width:              width,
 		Height:             height,
 		CompositionState:   compositionState,
@@ -60,11 +57,11 @@ func ReadPresentationCompositionSegment(reader *reader.Reader, header *segments.
 	}, nil
 }
 
-func readCompositionObject(reader *reader.Reader) (*segments.CompositionObject, error) {
+func readCompositionObject(reader *Reader) (*CompositionObject, error) {
 	buf, err := reader.Read(8)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error reading PCS composition object %v", err)
+		return nil, fmt.Errorf("Error reading composition object: %v", err)
 	}
 
 	objectID := int(
@@ -115,7 +112,7 @@ func readCompositionObject(reader *reader.Reader) (*segments.CompositionObject, 
 		)
 	}
 
-	return &segments.CompositionObject{
+	return &CompositionObject{
 		ObjectID:                         objectID,
 		WindowID:                         windowID,
 		ObjectCroppedFlag:                objectCroppedFlag,
@@ -128,17 +125,17 @@ func readCompositionObject(reader *reader.Reader) (*segments.CompositionObject, 
 	}, nil
 }
 
-func mapCompositionState(bt byte) (segments.CompositionState, error) {
+func mapCompositionState(bt byte) (CompositionState, error) {
 	switch bt {
 	case 0x00:
-		return segments.Normal, nil
+		return Normal, nil
 	case 0x40:
-		return segments.AcquisitionStart, nil
+		return AcquisitionStart, nil
 	case 0x80:
-		return segments.EpochStart, nil
+		return EpochStart, nil
 	}
 
-	return segments.Normal, fmt.Errorf("Invalid PCS composition state %v", bt)
+	return Normal, fmt.Errorf("Invalid composition state: %v", bt)
 }
 
 func mapPaletteUpdateFlag(bt byte) (bool, error) {
@@ -149,7 +146,7 @@ func mapPaletteUpdateFlag(bt byte) (bool, error) {
 		return true, nil
 	}
 
-	return false, fmt.Errorf("Invalid PCS paletter update flag %v", bt)
+	return false, fmt.Errorf("Invalid 'palette update' flag: %v", bt)
 }
 
 func mapObjectCroppedFlag(bt byte) (bool, error) {
@@ -160,5 +157,5 @@ func mapObjectCroppedFlag(bt byte) (bool, error) {
 		return true, nil
 	}
 
-	return false, fmt.Errorf("Invalid PCS object cropped flag %v", bt)
+	return false, fmt.Errorf("Invalid 'object cropped' flag: %v", bt)
 }

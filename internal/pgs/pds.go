@@ -1,28 +1,25 @@
-package decoder
+package pgs
 
 import (
 	"fmt"
 	"image/color"
 	"math"
-
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
 
-func ReadPaletteDefinitionSegment(reader *reader.Reader, header *segments.Header) (*segments.PaletteDefinitionSegment, error) {
+func ReadPaletteDefinitionSegment(reader *Reader, header *Header) (*PaletteDefinitionSegment, error) {
 	reader.SetLimit(header.SegmentSize)
 	defer reader.SkipPastLimit()
 
 	rawPaletteID, err := reader.ReadByte()
 	if err != nil {
-		return nil, fmt.Errorf("Error reading PDS palette ID %v", err)
+		return nil, fmt.Errorf("Error reading palette ID: %v", err)
 	}
 
 	paletteID := int(rawPaletteID)
 
 	rawPaletteVersionNumber, err := reader.ReadByte()
 	if err != nil {
-		return nil, fmt.Errorf("Error reading PDS pallete version number %v", err)
+		return nil, fmt.Errorf("Error reading pallete version number: %v", err)
 	}
 
 	paletteVersionNumber := int(rawPaletteVersionNumber)
@@ -35,7 +32,7 @@ func ReadPaletteDefinitionSegment(reader *reader.Reader, header *segments.Header
 		buf, err := reader.Read(5)
 
 		if err != nil {
-			return nil, fmt.Errorf("Error reading PDS palette entry %v", err)
+			return nil, fmt.Errorf("Error reading palette entry: %v", err)
 		}
 
 		paletteEntryID := int(buf[0])
@@ -59,7 +56,7 @@ func ReadPaletteDefinitionSegment(reader *reader.Reader, header *segments.Header
 		paletteEntries[paletteEntryID] = paletteColor
 	}
 
-	return &segments.PaletteDefinitionSegment{
+	return &PaletteDefinitionSegment{
 		PaletteID:            paletteID,
 		PaletteVersionNumber: paletteVersionNumber,
 		PaletteEntries:       paletteEntries,

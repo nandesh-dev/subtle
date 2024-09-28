@@ -5,24 +5,21 @@ import (
 	"image"
 	"image/color"
 	"log"
-
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/reader"
-	"github.com/nandesh-dev/subtle/internal/subtitle/pgs/segments"
 )
 
 type displaySet struct {
-	Header                         *segments.Header
-	PresentationCompositionSegment *segments.PresentationCompositionSegment
-	WindowDefinitionSegments       map[int]*segments.Window
-	PaletteDefinitionSegments      map[int]*segments.PaletteDefinitionSegment
-	ObjectDefinitionSegments       map[int]*segments.ObjectDefinitionSegment
+	Header                         Header
+	PresentationCompositionSegment PresentationCompositionSegment
+	WindowDefinitions              map[int]Window
+	PaletteDefinitionSegments      map[int]PaletteDefinitionSegment
+	ObjectDefinitionSegments       map[int]ObjectDefinitionSegment
 }
 
 func NewDisplaySet() displaySet {
 	return displaySet{
-		PaletteDefinitionSegments: make(map[int]*segments.PaletteDefinitionSegment),
-		WindowDefinitionSegments:  make(map[int]*segments.Window),
-		ObjectDefinitionSegments:  make(map[int]*segments.ObjectDefinitionSegment),
+		PaletteDefinitionSegments: make(map[int]PaletteDefinitionSegment),
+		WindowDefinitions:         make(map[int]Window),
+		ObjectDefinitionSegments:  make(map[int]ObjectDefinitionSegment),
 	}
 }
 
@@ -84,8 +81,7 @@ func (d *displaySet) parse() ([]image.Image, error) {
 }
 
 func decodeRLEImageData(data []byte) ([][]int, error) {
-
-	reader := reader.NewReader(data)
+	reader := NewReader(data)
 
 	imageColorIDs := make([][]int, 0)
 	currentLine := make([]int, 0)
