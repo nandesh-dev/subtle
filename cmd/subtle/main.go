@@ -12,5 +12,9 @@ func main() {
 
 	stats, _ := dir.Videos[0].Stats()
 
-	fmt.Println(decoder.DecodeRawSubtitleStream(stats.RawStreams[1]))
+	stream, _, _ := decoder.DecodeRawSubtitleStream(stats.RawStreams[0])
+
+	for _, seg := range stream.Segments {
+		fmt.Println(seg.Text)
+	}
 }

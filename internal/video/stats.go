@@ -49,6 +49,11 @@ func (v *File) Stats() (*Stats, error) {
 			return nil, fmt.Errorf("Missing codec name in probe JSON: %v", v.Path)
 		}
 
+		format, err := mapCodecName(codecName)
+		if err != nil {
+			return nil, err
+		}
+
 		rawIndex, indexExist := rawStream.(map[string]any)["index"].(float64)
 		if !indexExist {
 			return nil, fmt.Errorf("Missing index in probe JSON: %v", v.Path)
@@ -73,7 +78,7 @@ func (v *File) Stats() (*Stats, error) {
 
 		stream := subtitle.RawStream{
 			Index:         int(rawIndex),
-			Format:        codecName,
+			Format:        format,
 			Language:      lang,
 			VideoFilePath: v.Path,
 		}
@@ -84,4 +89,15 @@ func (v *File) Stats() (*Stats, error) {
 	return &Stats{
 		RawStreams: streams,
 	}, nil
+}
+
+func mapCodecName(cN string) (subtitle.Format, error) {
+	switch cN {
+	case "hdmv_pgs_subtitle":
+		return subtitle.PGS, nil
+	case "ass":
+		return subtitle.ASS, nil
+	}
+
+	return subtitle.ASS, fmt.Errorf("Unsupported or invalid codec name: %v", cN)
 }

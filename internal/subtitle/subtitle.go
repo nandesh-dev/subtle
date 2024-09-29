@@ -18,13 +18,33 @@ type Stream struct {
 	Segments []Segment
 }
 
+func NewStream(lang language.Tag) Stream {
+	return Stream{
+		Langauge: lang,
+		Segments: make([]Segment, 0),
+	}
+}
+
+func (s *Stream) AddSegment(seg Segment) {
+	if len(s.Segments) > 0 {
+		previousSegment := s.Segments[len(s.Segments)-1]
+		if seg.Start == nil && previousSegment.End != nil {
+			seg.Start = &*previousSegment.End
+		} else if seg.Start != nil && previousSegment.End == nil {
+			previousSegment.End = &*seg.Start
+		}
+	}
+
+	s.Segments = append(s.Segments, seg)
+}
+
 type Subtitle struct {
 	Streams []Stream
 }
 
 type RawStream struct {
 	Index         int
-	Format        string
+	Format        Format
 	Language      language.Tag
 	VideoFilePath string
 }

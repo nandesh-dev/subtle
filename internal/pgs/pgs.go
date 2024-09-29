@@ -12,7 +12,7 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-func DecodePGSSubtitle(rawStream subtitle.RawStream) (*subtitle.Subtitle, error, *warnings.WarningList) {
+func DecodeSubtitle(rawStream subtitle.RawStream) (*subtitle.Stream, error, *warnings.WarningList) {
 	warningList := warnings.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer
@@ -136,9 +136,5 @@ func DecodePGSSubtitle(rawStream subtitle.RawStream) (*subtitle.Subtitle, error,
 		stream.Segments = append(stream.Segments, segment)
 	}
 
-	return &subtitle.Subtitle{
-		Streams: []subtitle.Stream{
-			stream,
-		},
-	}, nil, warningList
+	return &stream, nil, warningList
 }

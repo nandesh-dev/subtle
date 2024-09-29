@@ -23,11 +23,7 @@ var videoFormatLookup = map[string]video.Format{
 }
 
 var subtitleFormatLookup = map[string]subtitle.Format{
-	".srt": subtitle.SRT,
 	".ass": subtitle.ASS,
-	".ssa": subtitle.SSA,
-	".idx": subtitle.IDX,
-	".sub": subtitle.SUB,
 	".PGS": subtitle.PGS,
 }
 

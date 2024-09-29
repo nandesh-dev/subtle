@@ -8,10 +8,6 @@ type File struct {
 type Format int
 
 const (
-	SRT Format = iota
-	ASS
-	SSA
-	IDX
-	SUB
+	ASS Format = iota
 	PGS
 )
