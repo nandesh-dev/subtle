@@ -1,20 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/nandesh-dev/subtle/internal/decoder"
+	"github.com/nandesh-dev/subtle/internal/ass"
 	"github.com/nandesh-dev/subtle/internal/filemanager"
+	"github.com/nandesh-dev/subtle/internal/srt"
+	"github.com/nandesh-dev/subtle/internal/subtitle"
 )
 
 func main() {
 	dir, _ := filemanager.ReadDirectory("./media")
+	videos, _ := dir.VideoFiles()
 
-	stats, _ := dir.Videos[0].Stats()
+	for _, v := range videos {
+		rawStreams, _ := subtitle.ExtractRawStreams(&v)
 
-	stream, _, _ := decoder.DecodeRawSubtitleStream(stats.RawStreams[0])
+		for _, rawStream := range rawStreams {
+			if rawStream.Format() == subtitle.ASS {
+				assStream, _, _ := ass.DecodeSubtitle(&rawStream)
 
-	for _, seg := range stream.Segments {
-		fmt.Println(seg.Text)
+				srtStream := srt.NewStream()
+
+				for _, seg := range assStream.Segments() {
+					srtSegment := srt.NewSegment()
+					srtSegment.SetStart(seg.Start())
+					srtSegment.SetEnd(seg.End())
+					srtSegment.SetText(seg.Text())
+
+					srtStream.AddSegment(*srtSegment)
+				}
+
+				file, _ := os.Create("subtitle.srt")
+				defer file.Close()
+
+				file.WriteString(srt.EncodeSubtitle(*srtStream))
+				break
+			}
+		}
 	}
 }

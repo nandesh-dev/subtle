@@ -12,17 +12,17 @@ import (
 )
 
 type TesseractClient struct {
-	GosseractClient *gosseract.Client
+	gosseractClient *gosseract.Client
 }
 
 func NewClient() *TesseractClient {
 	return &TesseractClient{
-		GosseractClient: gosseract.NewClient(),
+		gosseractClient: gosseract.NewClient(),
 	}
 }
 
 func (c *TesseractClient) Close() {
-	if err := c.GosseractClient.Close(); err != nil {
+	if err := c.gosseractClient.Close(); err != nil {
 		slog.Warn("Error closing gosseract client: %v", err)
 	}
 }
@@ -33,11 +33,11 @@ func (c *TesseractClient) ExtractTextFromImage(img image.Image, lang language.Ta
 		return "", fmt.Errorf("Error encoding image to png: %v", err)
 	}
 
-	if err := c.GosseractClient.SetImageFromBytes(buf.Bytes()); err != nil {
+	if err := c.gosseractClient.SetImageFromBytes(buf.Bytes()); err != nil {
 		return "", fmt.Errorf("Error scanning image: %v", err)
 	}
 
-	text, err := c.GosseractClient.Text()
+	text, err := c.gosseractClient.Text()
 	if err != nil {
 		return "", fmt.Errorf("Error getting text from gosseract: %v", err)
 	}
