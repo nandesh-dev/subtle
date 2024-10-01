@@ -7,5 +7,8 @@ pkgs.mkShell {
     ffmpeg_7-headless
     tesseract
     leptonica
+    protobuf
+    protoc-gen-go-grpc
+    protoc-gen-go
   ];
 }

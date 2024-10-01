@@ -7,16 +7,16 @@ import (
 )
 
 type Directory struct {
-	path      string
-	childrens []Directory
-	files     []File
+	path     string
+	children []Directory
+	files    []File
 }
 
 func NewDirectory(path string) *Directory {
 	return &Directory{
-		path:      path,
-		childrens: make([]Directory, 0),
-		files:     make([]File, 0),
+		path:     path,
+		children: make([]Directory, 0),
+		files:    make([]File, 0),
 	}
 }
 
@@ -25,7 +25,7 @@ func (d *Directory) AddFile(file File) {
 }
 
 func (d *Directory) AddChild(child Directory) {
-	d.childrens = append(d.childrens, child)
+	d.children = append(d.children, child)
 }
 
 func (d *Directory) VideoFiles() ([]File, warning.WarningList) {
@@ -58,4 +58,8 @@ func (d *Directory) SubtitleFiles() []File {
 	}
 
 	return subtitles
+}
+
+func (d *Directory) Children() []Directory {
+	return d.children
 }

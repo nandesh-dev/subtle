@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package library;
+
+option go_package = "internal/pb/library";
+
+service LibraryService {
+  rpc GetMedia(GetMediaRequest) returns (GetMediaResponse);
+}
+
+message GetMediaRequest {}
+
+message Video {
+  string id = 1;
+}
+
+message Directory {
+  string path = 1;
+  repeated Directory children = 2;
+  repeated Video videos = 3;
+}
+
+message GetMediaResponse {
+  repeated Directory directories = 1;
+}

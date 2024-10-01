@@ -1,42 +1,32 @@
 package main
 
 import (
-	"os"
+	"log"
+	"net"
 
-	"github.com/nandesh-dev/subtle/internal/ass"
-	"github.com/nandesh-dev/subtle/internal/filemanager"
-	"github.com/nandesh-dev/subtle/internal/srt"
-	"github.com/nandesh-dev/subtle/internal/subtitle"
+	"github.com/nandesh-dev/subtle/internal/pb/library"
+	"github.com/nandesh-dev/subtle/internal/services"
+	"github.com/nandesh-dev/subtle/internal/tesseract"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	dir, _ := filemanager.ReadDirectory("./media")
-	videos, _ := dir.VideoFiles()
+	client := tesseract.NewClient()
+	defer client.Close()
 
-	for _, v := range videos {
-		rawStreams, _ := subtitle.ExtractRawStreams(&v)
+	listener, err := net.Listen("tcp", ":3000")
+	if err != nil {
+		log.Fatalln("failed to create listener: ", err)
+	}
 
-		for _, rawStream := range rawStreams {
-			if rawStream.Format() == subtitle.ASS {
-				assStream, _, _ := ass.DecodeSubtitle(&rawStream)
+	s := grpc.NewServer()
+	reflection.Register(s)
 
-				srtStream := srt.NewStream()
+	libraryService := services.Services().Library
+	library.RegisterLibraryServiceServer(s, &libraryService)
 
-				for _, seg := range assStream.Segments() {
-					srtSegment := srt.NewSegment()
-					srtSegment.SetStart(seg.Start())
-					srtSegment.SetEnd(seg.End())
-					srtSegment.SetText(seg.Text())
-
-					srtStream.AddSegment(*srtSegment)
-				}
-
-				file, _ := os.Create("subtitle.srt")
-				defer file.Close()
-
-				file.WriteString(srt.EncodeSubtitle(*srtStream))
-				break
-			}
-		}
+	if err := s.Serve(listener); err != nil {
+		log.Fatalln("failed to serve: ", err)
 	}
 }
