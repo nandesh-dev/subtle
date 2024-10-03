@@ -7,6 +7,7 @@
 |Path|Use|
 |---|---|
 |`/media`|Directory where all your media content is stored|
+|`/config`|Directory where all the subtle data will be stored|
 
 ## References
 
