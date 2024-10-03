@@ -1,4 +1,4 @@
-.PHONY: proto
+.PHONY: proto run
 
 proto:
 	protoc ./proto/**/*.proto --go_out=. --go-grpc_out=. 

@@ -10,5 +10,6 @@ pkgs.mkShell {
     protobuf
     protoc-gen-go-grpc
     protoc-gen-go
+    graphviz
   ];
 }

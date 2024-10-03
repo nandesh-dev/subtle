@@ -10,13 +10,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-type Format int
-
-const (
-	PGS Format = iota
-	ASS
-)
-
 type RawStream struct {
 	filepath string
 	index    int
@@ -58,12 +51,8 @@ func (s *RawStream) Language() language.Tag {
 	return s.language
 }
 
-type file interface {
-	Path() string
-}
-
-func ExtractRawStreams(file file) ([]RawStream, error) {
-	rawResultData, err := ffmpeg.Probe(file.Path())
+func ExtractRawStreams(path string) ([]RawStream, error) {
+	rawResultData, err := ffmpeg.Probe(path)
 	warnings := warning.NewWarningList()
 
 	if err != nil {
@@ -94,7 +83,7 @@ func ExtractRawStreams(file file) ([]RawStream, error) {
 			continue
 		}
 
-		rawStream := NewRawStream(file.Path())
+		rawStream := NewRawStream(path)
 
 		codecName, codecNameExist := rawStreamData.(map[string]any)["codec_name"].(string)
 		if !codecNameExist {

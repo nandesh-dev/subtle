@@ -8,20 +8,15 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-type RawStream interface {
-	Index() int
-	Filepath() string
-}
-
-func DecodeSubtitle(rawStream RawStream) (Stream, *warning.WarningList, error) {
+func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error) {
 	stream := NewStream()
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer
 
 	ffmpeg.LogCompiledCommand = false
-	err := ffmpeg.Input(rawStream.Filepath()).
-		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", rawStream.Index()), "c:s": "copy", "f": "sup"}).
+	err := ffmpeg.Input(path).
+		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", index), "c:s": "copy", "f": "sup"}).
 		WithOutput(&subtitleBuf).
 		WithErrorOutput(&errorBuf).
 		Run()

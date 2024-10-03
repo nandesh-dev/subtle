@@ -9,7 +9,29 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type Server struct {
+	Port           int
+	GRPCReflection bool
+}
+
+type AutoExtract struct {
+	Formats      []string
+	Languages    []string
+	OutputFormat string
+}
+
+type WatchDirectory struct {
+	Path        string
+	AutoExtract AutoExtract
+}
+
+type Media struct {
+	WatchDirectories []WatchDirectory
+}
+
 type t struct {
+	Server Server
+	Media  Media
 }
 
 var (
@@ -24,6 +46,25 @@ func Config() *t {
 
 func Init(basepath string) (e error) {
 	once.Do(func() {
+		config = t{
+			Server: Server{
+				Port:           3000,
+				GRPCReflection: false,
+			},
+			Media: Media{
+				WatchDirectories: []WatchDirectory{
+					{
+						Path: "/media",
+						AutoExtract: AutoExtract{
+							Languages:    []string{"eng"},
+							Formats:      []string{"ass"},
+							OutputFormat: "srt",
+						},
+					},
+				},
+			},
+		}
+
 		path = filepath.Join(basepath, "config.yaml")
 
 		file, err := os.ReadFile(path)
@@ -35,12 +76,13 @@ func Init(basepath string) (e error) {
 					return
 				}
 				file.Close()
-			} else {
-				e = fmt.Errorf("Error reading config file: %v", err)
+
+				e = Write()
 				return
 			}
 
-			file = make([]byte, 0)
+			e = fmt.Errorf("Error reading config file: %v", err)
+			return
 		}
 
 		if err := yaml.Unmarshal(file, &config); err != nil {
@@ -61,7 +103,7 @@ func Write() error {
 		return fmt.Errorf("Error marshaling file: %v", err)
 	}
 
-	if err := os.WriteFile(path, output, 644); err != nil {
+	if err := os.WriteFile(path, output, 0644); err != nil {
 		return fmt.Errorf("Error writing config: %v", err)
 	}
 

@@ -28,24 +28,15 @@ const (
 	Format
 )
 
-type RawStream interface {
-	Index() int
-	Filepath() string
-}
-
-func (s *Stream) AddSegment(segment Segment) {
-	s.segments = append(s.segments, segment)
-}
-
-func DecodeSubtitle(rawStream RawStream) (Stream, *warning.WarningList, error) {
+func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error) {
 	stream := NewStream()
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer
 
 	ffmpeg.LogCompiledCommand = false
-	err := ffmpeg.Input(rawStream.Filepath()).
-		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", rawStream.Index()), "f": "ass"}).
+	err := ffmpeg.Input(path).
+		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", index), "f": "ass"}).
 		WithOutput(&subtitleBuf).
 		WithErrorOutput(&errorBuf).
 		Run()
