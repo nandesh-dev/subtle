@@ -11,13 +11,19 @@ Your tool to manage all the subtitles in your personal media library. Subtle hel
 2. Install dependencies
 
 ```bash
-    apt install tesseract-ocr libtesseract-dev libleptonica-dev
+apt install tesseract-ocr libtesseract-dev libleptonica-dev ffmpeg
 ```
 
 3. Build the package
 
 ```bash
-go build ./cmd/tui
+go build ./cmd/subtle
+```
+
+### Docker
+
+```bash
+docker run -v /path/to/config:/config -v /path/to/media:/media nandeshdev/subtle
 ```
 
 ## License
