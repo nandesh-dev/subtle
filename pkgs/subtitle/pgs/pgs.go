@@ -1,23 +1,26 @@
-package ass
+package pgs
 
-import "time"
+import (
+	"image"
+	"time"
+)
 
 type Segment struct {
-	start time.Duration
-	end   time.Duration
-	text  string
+	start  time.Duration
+	images []image.Image
 }
 
 func NewSegment() *Segment {
 	return &Segment{}
 }
 
-func (s *Segment) Text() string {
-	return s.text
+func (s *Segment) Images() ([]image.Image, error) {
+	return s.images, nil
 }
 
-func (s *Segment) SetText(text string) {
-	s.text = text
+func (s *Segment) AddImages(images []image.Image) error {
+	s.images = append(s.images, images...)
+	return nil
 }
 
 func (s *Segment) Start() time.Duration {
@@ -28,14 +31,6 @@ func (s *Segment) SetStart(start time.Duration) {
 	s.start = start
 }
 
-func (s *Segment) End() time.Duration {
-	return s.end
-}
-
-func (s *Segment) SetEnd(end time.Duration) {
-	s.end = end
-}
-
 type Stream struct {
 	segments []Segment
 }
@@ -44,6 +39,10 @@ func NewStream() *Stream {
 	return &Stream{
 		segments: make([]Segment, 0),
 	}
+}
+
+func (s *Stream) AddSegment(segment Segment) {
+	s.segments = append(s.segments, segment)
 }
 
 func (s *Stream) Segments() []Segment {

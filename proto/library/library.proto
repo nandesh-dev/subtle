@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package library;
 
-option go_package = "internal/pb/library";
+option go_package = "generated/api/library";
 
 service LibraryService {
   rpc GetMedia(GetMediaRequest) returns (GetMediaResponse);

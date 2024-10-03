@@ -5,35 +5,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-type File struct {
-	path string
-}
-
-func NewFile(path string) *File {
-	return &File{
-		path: path,
-	}
-}
-
-func (f *File) Path() string {
-	return f.path
-}
-
-func (f *File) Extension() string {
-	return filepath.Ext(f.path)
-}
-
-func (f *File) Basename() string {
-	return strings.TrimSuffix(filepath.Base(f.path), f.Extension())
-}
-
-func (f *File) IsVideoFile() (bool, error) {
-	rawProbeResult, err := ffmpeg.Probe(f.path)
+func IsVideoFile(path string) (bool, error) {
+	rawProbeResult, err := ffmpeg.Probe(path)
 	if err != nil {
 		return false, fmt.Errorf("Failed to probe file stats: %v", err)
 	}
@@ -64,6 +41,6 @@ func (f *File) IsVideoFile() (bool, error) {
 	return false, nil
 }
 
-func (f *File) IsSubtitleFile() bool {
-	return slices.Contains([]string{}, f.Extension())
+func IsSubtitleFile(path string) bool {
+	return slices.Contains([]string{".srt"}, filepath.Ext(path))
 }
