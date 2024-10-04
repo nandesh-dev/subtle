@@ -63,11 +63,15 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 
 		switch lT {
 		case Format:
-			currentFormat = strings.Split(suffix, ",")
+			currentFormat = make([]string, 0)
+			for _, pt := range strings.Split(suffix, ",") {
+				currentFormat = append(currentFormat, strings.TrimSpace(pt))
+			}
 		case Dialogue:
 			segment := NewSegment()
 
 			parts := strings.SplitN(suffix, ",", len(currentFormat))
+
 			for i, partName := range currentFormat {
 				switch partName {
 				case "Start":
