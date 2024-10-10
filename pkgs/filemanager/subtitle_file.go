@@ -1,18 +1,15 @@
 package filemanager
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/text/language"
 )
 
 type SubtitleFile struct {
 	path string
-}
-
-func NewSubtitleFile(path string) *SubtitleFile {
-	return &SubtitleFile{
-		path: path,
-	}
 }
 
 func (s *SubtitleFile) Path() string {
@@ -29,14 +26,14 @@ func (s *SubtitleFile) Basename() string {
 	return pt[0]
 }
 
-func (s *SubtitleFile) LanguageCode() string {
+func (s *SubtitleFile) Language() (language.Tag, error) {
 	pt := strings.Split(filepath.Base(s.path), ".")
 
 	if len(pt) >= 3 {
-		return pt[len(pt)-2]
+		return language.Parse(pt[len(pt)-2])
 	}
 
-	return ""
+	return language.English, fmt.Errorf("No language code found")
 }
 
 func (s *SubtitleFile) Extension() string {

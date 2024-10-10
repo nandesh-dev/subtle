@@ -3,26 +3,28 @@ package pgs
 import (
 	"bytes"
 	"fmt"
+	"time"
 
+	"github.com/nandesh-dev/subtle/pkgs/filemanager"
+	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error) {
-	stream := NewStream()
+func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.ImageSubtitle, warning.WarningList, error) {
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer
 
 	ffmpeg.LogCompiledCommand = false
-	err := ffmpeg.Input(path).
-		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", index), "c:s": "copy", "f": "sup"}).
+	err := ffmpeg.Input(rawStream.Filepath()).
+		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", rawStream.Index()), "c:s": "copy", "f": "sup"}).
 		WithOutput(&subtitleBuf).
 		WithErrorOutput(&errorBuf).
 		Run()
 
 	if err != nil {
-		return *stream, warnings, fmt.Errorf("Error extracting subtitles: %v %v", err, errorBuf)
+		return nil, *warnings, fmt.Errorf("Error extracting subtitles: %v %v", err, errorBuf)
 	}
 
 	reader := NewReader(subtitleBuf.Bytes())
@@ -34,7 +36,7 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 		header, err := ReadHeader(reader)
 
 		if err != nil {
-			return *stream, warnings, fmt.Errorf("Error reading header: %v", err)
+			return nil, *warnings, fmt.Errorf("Error reading header: %v", err)
 		}
 
 		dS.Header = *header
@@ -95,6 +97,8 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 		}
 	}
 
+	sub := subtitle.NewImageSubtitle()
+
 	for _, displaySet := range displaySets {
 		images, err := displaySet.parse()
 		if err != nil {
@@ -102,13 +106,11 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 			continue
 		}
 
-		segment := NewSegment()
-
-		segment.AddImages(images)
-		segment.SetStart(displaySet.Header.PTS)
-
-		stream.AddSegment(*segment)
+		for _, image := range images {
+			segment := subtitle.NewImageSegment(displaySet.Header.PTS, time.Second*0, image)
+			sub.AddSegment(*segment)
+		}
 	}
 
-	return *stream, warnings, nil
+	return sub, *warnings, nil
 }

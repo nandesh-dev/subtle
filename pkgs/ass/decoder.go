@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nandesh-dev/subtle/pkgs/filemanager"
+	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
@@ -28,21 +30,20 @@ const (
 	Format
 )
 
-func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error) {
-	stream := NewStream()
+func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.TextSubtitle, warning.WarningList, error) {
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer
 
 	ffmpeg.LogCompiledCommand = false
-	err := ffmpeg.Input(path).
-		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", index), "f": "ass"}).
+	err := ffmpeg.Input(rawStream.Filepath()).
+		Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", rawStream.Index()), "f": "ass"}).
 		WithOutput(&subtitleBuf).
 		WithErrorOutput(&errorBuf).
 		Run()
 
 	if err != nil {
-		return *stream, warnings, fmt.Errorf("Error extracting subtitles: %v %v", err, errorBuf.String())
+		return nil, *warnings, fmt.Errorf("Error extracting subtitles: %v %v", err, errorBuf.String())
 	}
 
 	reader := NewReader(subtitleBuf.Bytes())
@@ -50,6 +51,8 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 	currentFormat := make([]string, 0)
 	timeMultiplier := 1
 	timeOffset := time.Duration(0)
+
+	sub := subtitle.NewTextSubtitle()
 
 	for !reader.ReachedEnd() {
 		line, _ := reader.Advance()
@@ -68,32 +71,36 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 				currentFormat = append(currentFormat, strings.TrimSpace(pt))
 			}
 		case Dialogue:
-			segment := NewSegment()
+			start, end, text := time.Second*0, time.Second*0, ""
 
 			parts := strings.SplitN(suffix, ",", len(currentFormat))
 
 			for i, partName := range currentFormat {
 				switch partName {
 				case "Start":
-					start, err := parseTime(parts[i], timeMultiplier, timeOffset)
+					st, err := parseTime(parts[i], timeMultiplier, timeOffset)
 					if err != nil {
 						warnings.AddWarning(fmt.Errorf("Error parsing start timestamp: %v; %v", err, line))
 					} else {
-						segment.SetStart(start)
+						start = st
 					}
 				case "End":
-					end, err := parseTime(parts[i], timeMultiplier, timeOffset)
+					ed, err := parseTime(parts[i], timeMultiplier, timeOffset)
 					if err != nil {
 						warnings.AddWarning(fmt.Errorf("Error parsing end timestamp: %v; %v", err, line))
 					} else {
-						segment.SetEnd(end)
+						end = ed
 					}
 				case "Text":
-					segment.SetText(extractText(parts[i]))
+					text = extractText(parts[i])
 				}
 			}
 
-			stream.AddSegment(*segment)
+			if text != "" {
+				segment := subtitle.NewTextSegment(start, end, text)
+				sub.AddSegment(*segment)
+			}
+
 		case Timer:
 			multiplier, err := strconv.ParseFloat(suffix, 32)
 			if err != nil {
@@ -113,7 +120,7 @@ func DecodeSubtitle(path string, index int) (Stream, *warning.WarningList, error
 		}
 	}
 
-	return *stream, warnings, nil
+	return sub, *warnings, nil
 }
 
 func extractLineTypePrefix(line string) (LineType, string, error) {

@@ -1,9 +1,11 @@
-package subtitle
+package filemanager
 
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
@@ -13,46 +15,33 @@ import (
 type RawStream struct {
 	filepath string
 	index    int
-	format   Format
+	format   subtitle.Format
 	language language.Tag
-}
-
-func NewRawStream(filepath string) *RawStream {
-	return &RawStream{
-		filepath: filepath,
-	}
+	title    string
 }
 
 func (s *RawStream) Filepath() string {
 	return s.filepath
 }
 
-func (s *RawStream) SetIndex(index int) {
-	s.index = index
-}
-
 func (s *RawStream) Index() int {
 	return s.index
 }
 
-func (s *RawStream) SetFormat(format Format) {
-	s.format = format
-}
-
-func (s *RawStream) Format() Format {
+func (s *RawStream) Format() subtitle.Format {
 	return s.format
-}
-
-func (s *RawStream) SetLanguage(lang language.Tag) {
-	s.language = lang
 }
 
 func (s *RawStream) Language() language.Tag {
 	return s.language
 }
 
-func ExtractRawStreams(path string) ([]RawStream, error) {
-	rawResultData, err := ffmpeg.Probe(path)
+func (s *RawStream) Title() string {
+	return s.title
+}
+
+func (v *VideoFile) RawStreams() (*[]RawStream, error) {
+	rawResultData, err := ffmpeg.Probe(v.path)
 	warnings := warning.NewWarningList()
 
 	if err != nil {
@@ -83,8 +72,6 @@ func ExtractRawStreams(path string) ([]RawStream, error) {
 			continue
 		}
 
-		rawStream := NewRawStream(path)
-
 		codecName, codecNameExist := rawStreamData.(map[string]any)["codec_name"].(string)
 		if !codecNameExist {
 			return nil, fmt.Errorf("Missing codec name in probe JSON: %v", rawStreamData)
@@ -94,16 +81,14 @@ func ExtractRawStreams(path string) ([]RawStream, error) {
 		if err != nil {
 			return nil, err
 		}
-		rawStream.SetFormat(format)
 
 		rawIndex, indexExist := rawStreamData.(map[string]any)["index"].(float64)
 		if !indexExist {
 			return nil, fmt.Errorf("Missing index in probe JSON: %v", rawStreamData)
 		}
 
-		rawStream.SetIndex(int(rawIndex))
-
 		lang := language.English
+		title := ""
 
 		tags, tagsExist := rawStreamData.(map[string]any)["tags"].(map[string]any)
 		if tagsExist {
@@ -117,23 +102,33 @@ func ExtractRawStreams(path string) ([]RawStream, error) {
 					lang = langTag
 				}
 			}
+
+			if rawTitle, titleExist := tags["title"].(string); titleExist {
+				title = strings.TrimSpace(rawTitle)
+			}
 		}
 
-		rawStream.SetLanguage(lang)
-
-		rawStreams = append(rawStreams, *rawStream)
+		rawStreams = append(rawStreams, RawStream{
+			filepath: v.path,
+			index:    int(rawIndex),
+			format:   format,
+			language: lang,
+			title:    title,
+		})
 	}
 
-	return rawStreams, nil
+	return &rawStreams, nil
 }
 
-func mapCodecName(cN string) (Format, error) {
+func mapCodecName(cN string) (subtitle.Format, error) {
 	switch cN {
 	case "hdmv_pgs_subtitle":
-		return PGS, nil
+		return subtitle.PGS, nil
 	case "ass":
-		return ASS, nil
+		return subtitle.ASS, nil
+	case "subrip":
+		return subtitle.SRT, nil
 	}
 
-	return ASS, fmt.Errorf("Unsupported or invalid codec name: %v", cN)
+	return subtitle.ASS, fmt.Errorf("Unsupported or invalid codec name: %v", cN)
 }

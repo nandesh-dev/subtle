@@ -3,10 +3,12 @@ package srt
 import (
 	"fmt"
 	"time"
+
+	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 )
 
-func EncodeSubtitle(stream Stream) string {
-	segments := stream.Segments()
+func EncodeSubtitle(sub subtitle.TextSubtitle) string {
+	segments := sub.Segments()
 
 	output := ""
 
