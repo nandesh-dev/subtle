@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-vertical {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+
+  .text-horizontal {
+    writing-mode: horizontal-tb;
+    transform: rotate(0deg);
+  }
+}

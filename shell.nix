@@ -11,5 +11,7 @@ pkgs.mkShell {
     protoc-gen-go-grpc
     protoc-gen-go
     graphviz
+    nodejs_22
+    pnpm
   ];
 }
