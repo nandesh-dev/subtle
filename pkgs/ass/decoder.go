@@ -92,13 +92,20 @@ func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.TextSubtitle, wa
 						end = ed
 					}
 				case "Text":
-					text = extractText(parts[i])
+					text = strings.TrimSpace(extractText(parts[i]))
 				}
 			}
 
 			if text != "" {
 				segment := subtitle.NewTextSegment(start, end, text)
-				sub.AddSegment(*segment)
+
+				if previousSegment, err := sub.PreviousSegment(); err == nil && segment.Text() == previousSegment.Text() {
+					combinedSegment := subtitle.NewTextSegment(previousSegment.Start(), end, text)
+
+					sub.UpdatePreviousSegment(*combinedSegment)
+				} else {
+					sub.AddSegment(*segment)
+				}
 			}
 
 		case Timer:
@@ -173,20 +180,36 @@ func parseTime(t string, multipler int, offset time.Duration) (time.Duration, er
 
 func extractText(str string) string {
 	insideBracket := false
+
+	bracketStartIndex := 0
+	drawingMode := false
+
 	txt := ""
-	for _, c := range str {
+	for i, c := range str {
 		if insideBracket {
 			if c == '}' {
 				insideBracket = false
+
+				if strings.Contains(str[bracketStartIndex:i+1], "\\p1") {
+					drawingMode = true
+				}
 			}
 		} else {
 			if c == '{' {
 				insideBracket = true
+
+				bracketStartIndex = i
+				drawingMode = false
 			} else {
-				txt += string(c)
+				if !drawingMode {
+					txt += string(c)
+				}
 			}
 		}
 	}
 
-	return strings.ReplaceAll(txt, "\\N", "\n")
+	txt = strings.ReplaceAll(txt, "\\N", "\n")
+	txt = strings.ReplaceAll(txt, "\\h", "")
+
+	return txt
 }

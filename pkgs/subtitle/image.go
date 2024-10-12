@@ -1,6 +1,7 @@
 package subtitle
 
 import (
+	"fmt"
 	"image"
 	"time"
 )
@@ -25,8 +26,22 @@ func (s *ImageSubtitle) AddSegment(segment ImageSegment) {
 	s.segments = append(s.segments, segment)
 }
 
+func (s *ImageSubtitle) UpdatePreviousSegment(segment ImageSegment) {
+	s.segments[len(s.segments)-1] = segment
+}
+
 func (s *ImageSubtitle) Segments() []ImageSegment {
 	return s.segments
+}
+
+func (s *ImageSubtitle) PreviousSegment() (*ImageSegment, error) {
+	index := len(s.segments) - 1
+
+	if index < 0 {
+		return nil, fmt.Errorf("No previous segment")
+	}
+
+	return &s.segments[len(s.segments)-1], nil
 }
 
 func NewImageSegment(start time.Duration, end time.Duration, image image.Image) *ImageSegment {

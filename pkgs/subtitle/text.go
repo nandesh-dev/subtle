@@ -1,6 +1,9 @@
 package subtitle
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type TextSubtitle struct {
 	segments []TextSegment
@@ -22,8 +25,22 @@ func (s *TextSubtitle) AddSegment(segment TextSegment) {
 	s.segments = append(s.segments, segment)
 }
 
+func (s *TextSubtitle) UpdatePreviousSegment(segment TextSegment) {
+	s.segments[len(s.segments)-1] = segment
+}
+
 func (s *TextSubtitle) Segments() []TextSegment {
 	return s.segments
+}
+
+func (s *TextSubtitle) PreviousSegment() (*TextSegment, error) {
+	index := len(s.segments) - 1
+
+	if index < 0 {
+		return nil, fmt.Errorf("No previous segment")
+	}
+
+	return &s.segments[len(s.segments)-1], nil
 }
 
 func NewTextSegment(start time.Duration, end time.Duration, text string) *TextSegment {
