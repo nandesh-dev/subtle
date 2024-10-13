@@ -1,8 +1,10 @@
-import { Link, Outlet } from "react-router-dom";
-import { HomeIcon } from "../../assets";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { FileIcon, HomeIcon } from "../../assets";
 import { Desktop, Mobile, Tablet } from "../utils/react_responsive";
 
 export function Root() {
+  let location = useLocation();
+
   return (
     <>
       <Mobile>
@@ -15,22 +17,24 @@ export function Root() {
               <ul className="flex flex-row justify-between">
                 <li>
                   <Link to={"/home"}>
-                    <HomeIcon className="fill-primary" />
+                    <HomeIcon
+                      className={
+                        location.pathname.startsWith("/home")
+                          ? "fill-primary"
+                          : "fill-gray-830"
+                      }
+                    />
                   </Link>
                 </li>
                 <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
+                  <Link to={"/media"}>
+                    <FileIcon
+                      className={
+                        location.pathname.startsWith("/media")
+                          ? "fill-primary"
+                          : "fill-gray-830"
+                      }
+                    />
                   </Link>
                 </li>
               </ul>
@@ -45,26 +49,28 @@ export function Root() {
             <div className="rounded-sm w-fit h-[8rem] pt-lg bg-gray-190">
               <div className="h-full rounded-sm bg-primary w-xs"></div>
             </div>
-            <nav className="">
-              <ul className="flex flex-col justify-between gap-sm">
+            <nav>
+              <ul className="flex flex-col justify-between items-center gap-sm">
                 <li>
                   <Link to={"/home"}>
-                    <HomeIcon className="fill-primary" />
+                    <HomeIcon
+                      className={
+                        location.pathname.startsWith("/home")
+                          ? "fill-primary"
+                          : "fill-gray-830"
+                      }
+                    />
                   </Link>
                 </li>
                 <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <HomeIcon className="fill-gray-830" />
+                  <Link to={"/media"}>
+                    <FileIcon
+                      className={
+                        location.pathname.startsWith("/media")
+                          ? "fill-primary"
+                          : "fill-gray-830"
+                      }
+                    />
                   </Link>
                 </li>
               </ul>
@@ -73,7 +79,9 @@ export function Root() {
               Drop Your Subtitle
             </p>
           </section>
-          <Outlet />
+          <section className="overflow-hidden">
+            <Outlet />
+          </section>
         </section>
       </Tablet>
       <Desktop>
@@ -103,23 +111,29 @@ export function Root() {
             <nav className="">
               <ul className="flex flex-col justify-between gap-sm">
                 <li>
-                  <Link to={"/home"}>
-                    <p className="text-sm text-gray-830">Home</p>
+                  <Link
+                    to={"/home"}
+                    className={
+                      "text-sm " +
+                      (location.pathname.startsWith("/home")
+                        ? "text-primary"
+                        : "text-gray-830")
+                    }
+                  >
+                    Home
                   </Link>
                 </li>
                 <li>
-                  <Link to={"/home"}>
-                    <p className="text-sm text-primary">Files</p>
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <p className="text-sm text-gray-830">Issues</p>
-                  </Link>
-                </li>
-                <li>
-                  <Link to={"/home"}>
-                    <p className="text-sm text-gray-830">Settings</p>
+                  <Link
+                    to={"/media"}
+                    className={
+                      "text-sm " +
+                      (location.pathname.startsWith("/media")
+                        ? "text-primary"
+                        : "text-gray-830")
+                    }
+                  >
+                    Media
                   </Link>
                 </li>
               </ul>
@@ -129,6 +143,9 @@ export function Root() {
               <p className="text-sm text-gray-190">Your</p>
               <p className="text-sm text-gray-190">Subtitle</p>
             </div>
+          </section>
+          <section className="overflow-hidden">
+            <Outlet />
           </section>
         </section>
       </Desktop>
