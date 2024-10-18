@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/nandesh-dev/subtle/generated/api/library"
-	library_service "github.com/nandesh-dev/subtle/internal/server/library"
+	"github.com/nandesh-dev/subtle/generated/api/media"
+	media_service "github.com/nandesh-dev/subtle/internal/server/media"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -33,8 +33,8 @@ func (s *server) Listen(port int, enableReflection bool) error {
 		reflection.Register(s.grpcServer)
 	}
 
-	libraryService := library_service.LibraryServiceServer{}
-	library.RegisterLibraryServiceServer(s.grpcServer, &libraryService)
+	mediaService := media_service.MediaServiceServer{}
+	media.RegisterMediaServiceServer(s.grpcServer, &mediaService)
 
 	if err := s.grpcServer.Serve(listener); err != nil {
 		return fmt.Errorf("failed to serve: %v", err)

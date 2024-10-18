@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "generated/api/media";
+
+service MediaService {
+  rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);
+}
+
+message GetDirectoryRequest {
+  string path = 1;
+}
+
+message Video {
+  string name = 1;
+  string extension = 2;
+}
+
+message Directory {
+  string path = 1;
+}
+
+message GetDirectoryResponse {
+  repeated Directory directories = 1;
+  repeated Video videos = 2;
+}
