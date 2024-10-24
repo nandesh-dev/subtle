@@ -1,9 +1,7 @@
 package media
 
-import (
-	"github.com/nandesh-dev/subtle/generated/api/media"
-)
+import "github.com/nandesh-dev/subtle/generated/proto/media/mediaconnect"
 
-type MediaServiceServer struct {
-	media.UnsafeMediaServiceServer
+type ServiceHandler struct {
+	mediaconnect.UnimplementedMediaServiceHandler
 }

@@ -1,9 +1,15 @@
 import { useParams } from 'react-router-dom'
 import { FolderIcon, SearchIcon } from '../../../assets'
 import { Large, Small } from '../../utils/react_responsive'
+import { useProto } from '../../context/proto'
+import { GetDirectoryRequest } from '../../../gen/proto/media/media_pb'
 
 export function Media() {
+    const { MediaServiceClient } = useProto()
     const { '*': mediaPath } = useParams()
+
+    const req = new GetDirectoryRequest({ path: '/' })
+    MediaServiceClient?.getDirectory(req).then(console.dir)
 
     return (
         <>

@@ -3,13 +3,14 @@ package media
 import (
 	"context"
 
-	"github.com/nandesh-dev/subtle/generated/api/media"
+	"connectrpc.com/connect"
+	"github.com/nandesh-dev/subtle/generated/proto/media"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 )
 
-func (s *MediaServiceServer) GetDirectory(ctx context.Context, req *media.GetDirectoryRequest) (*media.GetDirectoryResponse, error) {
-	if req.Path == "/" || req.Path == "" {
+func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[media.GetDirectoryRequest]) (*connect.Response[media.GetDirectoryResponse], error) {
+	if req.Msg.Path == "/" || req.Msg.Path == "" {
 		res := media.GetDirectoryResponse{
 			Directories: make([]*media.Directory, 0),
 			Videos:      make([]*media.Video, 0),
@@ -21,14 +22,14 @@ func (s *MediaServiceServer) GetDirectory(ctx context.Context, req *media.GetDir
 			})
 		}
 
-		return &res, nil
+		return connect.NewResponse(&res), nil
 	}
 
 	res := media.GetDirectoryResponse{
 		Directories: make([]*media.Directory, 0),
 	}
 
-	dir, _, _ := filemanager.ReadDirectory(req.Path)
+	dir, _, _ := filemanager.ReadDirectory(req.Msg.Path)
 
 	for _, child := range dir.Children() {
 		res.Directories = append(res.Directories, &media.Directory{
@@ -43,7 +44,7 @@ func (s *MediaServiceServer) GetDirectory(ctx context.Context, req *media.GetDir
 		})
 	}
 
-	return &res, nil
+	return connect.NewResponse(&res), nil
 }
 
 func compileResponseDirectory(directory filemanager.Directory) *media.Directory {

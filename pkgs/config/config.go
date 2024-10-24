@@ -12,6 +12,7 @@ import (
 
 type Server struct {
 	Port              int
+	COROrigins        []string
 	GRPCReflection    bool
 	DatabaseDirectory string
 }

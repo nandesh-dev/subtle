@@ -3,11 +3,17 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/http"
 
-	"github.com/nandesh-dev/subtle/generated/api/media"
-	media_service "github.com/nandesh-dev/subtle/internal/server/media"
+	connectcors "connectrpc.com/cors"
+	"connectrpc.com/grpcreflect"
+	"github.com/nandesh-dev/subtle/generated/proto/media/mediaconnect"
+	"github.com/nandesh-dev/subtle/internal/server/media"
+	"github.com/nandesh-dev/subtle/pkgs/config"
+	"github.com/rs/cors"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 type server struct {
@@ -20,25 +26,28 @@ func New() *server {
 }
 
 func (s *server) Listen(port int, enableReflection bool) error {
-	listener, err := net.Listen("tcp", ":3000")
-	if err != nil {
-		return fmt.Errorf("failed to create listener: %v", err)
+	mux := http.NewServeMux()
+
+	path, handler := mediaconnect.NewMediaServiceHandler(media.ServiceHandler{})
+	mux.Handle(path, handler)
+
+	if config.Config().Server.GRPCReflection {
+		path, handler = grpcreflect.NewHandlerV1Alpha(grpcreflect.NewStaticReflector(
+			mediaconnect.MediaServiceName))
+		mux.Handle(path, handler)
 	}
 
-	s.listener = &listener
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: config.Config().Server.COROrigins,
+		AllowedMethods: connectcors.AllowedMethods(),
+		AllowedHeaders: connectcors.AllowedHeaders(),
+		ExposedHeaders: connectcors.ExposedHeaders(),
+	})
 
-	s.grpcServer = grpc.NewServer()
-
-	if enableReflection {
-		reflection.Register(s.grpcServer)
-	}
-
-	mediaService := media_service.MediaServiceServer{}
-	media.RegisterMediaServiceServer(s.grpcServer, &mediaService)
-
-	if err := s.grpcServer.Serve(listener); err != nil {
-		return fmt.Errorf("failed to serve: %v", err)
-	}
+	http.ListenAndServe(
+		fmt.Sprintf("localhost:%v", port),
+		h2c.NewHandler(corsMiddleware.Handler(mux), &http2.Server{}),
+	)
 
 	return nil
 }

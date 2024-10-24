@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package media;
 
-option go_package = "generated/api/media";
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/media";
 
 service MediaService {
   rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);

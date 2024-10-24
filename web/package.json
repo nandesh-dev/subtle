@@ -10,6 +10,9 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@connectrpc/connect": "^1.6.1",
+        "@connectrpc/connect-web": "^1.6.1",
+        "@connectrpc/protoc-gen-connect-es": "^1.6.1",
         "google-protobuf": "^3.21.4",
         "grpc-web": "^1.5.0",
         "react": "^18.3.1",
@@ -18,6 +21,9 @@
         "react-router-dom": "^6.26.2"
     },
     "devDependencies": {
+        "@bufbuild/protobuf": "^1.10.0",
+        "@bufbuild/buf": "^1.10.0",
+        "@bufbuild/protoc-gen-es": "^1.10.0",
         "@eslint/js": "^9.11.1",
         "@types/react": "^18.3.10",
         "@types/react-dom": "^18.3.0",

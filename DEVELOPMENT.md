@@ -7,7 +7,7 @@
 2. Generate protobuf files 
 
 ```bash
-make proto
+buf generate
 ```
 
 3. Run go 
