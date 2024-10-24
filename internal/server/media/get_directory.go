@@ -2,6 +2,7 @@ package media
 
 import (
 	"context"
+	"path/filepath"
 
 	"connectrpc.com/connect"
 	"github.com/nandesh-dev/subtle/generated/proto/media"
@@ -19,6 +20,7 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 		for _, rootDirectory := range config.Config().Media.RootDirectories {
 			res.Directories = append(res.Directories, &media.Directory{
 				Path: rootDirectory.Path,
+				Name: filepath.Base(rootDirectory.Path),
 			})
 		}
 
@@ -34,6 +36,7 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 	for _, child := range dir.Children() {
 		res.Directories = append(res.Directories, &media.Directory{
 			Path: child.Path(),
+			Name: filepath.Base(child.Path()),
 		})
 	}
 
@@ -45,10 +48,4 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 	}
 
 	return connect.NewResponse(&res), nil
-}
-
-func compileResponseDirectory(directory filemanager.Directory) *media.Directory {
-	return &media.Directory{
-		Path: directory.Path(),
-	}
 }
