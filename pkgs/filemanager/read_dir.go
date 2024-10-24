@@ -15,9 +15,12 @@ func ReadDirectory(path string) (*Directory, warning.WarningList, error) {
 		return nil, *warnings, err
 	}
 
-	directory := NewDirectory(path)
-	videos := make([]*VideoFile, 0)
-	subtitles := make([]*SubtitleFile, 0)
+	directory := &Directory{
+		path:      path,
+		children:  make([]Directory, 0),
+		videos:    make([]VideoFile, 0),
+		subtitles: make([]SubtitleFile, 0),
+	}
 
 	for _, entry := range files {
 		entrypath := filepath.Join(path, entry.Name())
@@ -29,11 +32,13 @@ func ReadDirectory(path string) (*Directory, warning.WarningList, error) {
 				return nil, *warnings, err
 			}
 
-			directory.AddChild(*child)
+			directory.children = append(directory.children, *child)
 		}
 
 		if IsSubtitleFile(entrypath) {
-			subtitles = append(subtitles, NewSubtitleFile(entrypath))
+			directory.subtitles = append(directory.subtitles, SubtitleFile{
+				path: entrypath,
+			})
 			continue
 		}
 
@@ -45,33 +50,10 @@ func ReadDirectory(path string) (*Directory, warning.WarningList, error) {
 		}
 
 		if isVideoFile {
-			videos = append(videos, NewVideoFile(entrypath))
+			directory.videos = append(directory.videos, VideoFile{
+				path: entrypath,
+			})
 		}
-	}
-
-	extraSubtitles := make([]*SubtitleFile, 0)
-
-	for _, subtitle := range subtitles {
-		found := false
-		for _, video := range videos {
-			if subtitle.Basename() == video.Basename() {
-				found = true
-				video.AddSubtitleFile(*subtitle)
-				break
-			}
-		}
-
-		if !found {
-			extraSubtitles = append(extraSubtitles, subtitle)
-		}
-	}
-
-	for _, video := range videos {
-		directory.AddVideoFile(*video)
-	}
-
-	for _, subtitle := range extraSubtitles {
-		directory.AddExtraSubtitleFile(*subtitle)
 	}
 
 	return directory, *warnings, nil

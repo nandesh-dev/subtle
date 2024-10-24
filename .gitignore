@@ -1,1 +1,3 @@
-generated/*
+generated/
+web/node_modules/
+web/gen

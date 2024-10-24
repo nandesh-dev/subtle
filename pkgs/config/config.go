@@ -6,27 +6,38 @@ import (
 	"path/filepath"
 	"sync"
 
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
 type Server struct {
-	Port           int
-	GRPCReflection bool
+	Port              int
+	COROrigins        []string
+	GRPCReflection    bool
+	DatabaseDirectory string
+}
+
+type AutoExtractFormat struct {
+	ASS AutoExtractASS
+}
+
+type AutoExtractASS struct {
+	Enabled bool
 }
 
 type AutoExtract struct {
-	Formats      []string
-	Languages    []string
-	OutputFormat string
+	Languages              []language.Tag
+	Formats                AutoExtractFormat
+	RawStreamTitleKeywords []string
 }
 
-type WatchDirectory struct {
+type RootDirectory struct {
 	Path        string
 	AutoExtract AutoExtract
 }
 
 type Media struct {
-	WatchDirectories []WatchDirectory
+	RootDirectories []RootDirectory
 }
 
 type t struct {
@@ -48,17 +59,22 @@ func Init(basepath string) (e error) {
 	once.Do(func() {
 		config = t{
 			Server: Server{
-				Port:           3000,
-				GRPCReflection: false,
+				Port:              3000,
+				GRPCReflection:    false,
+				DatabaseDirectory: filepath.Join(basepath, "db"),
 			},
 			Media: Media{
-				WatchDirectories: []WatchDirectory{
+				RootDirectories: []RootDirectory{
 					{
 						Path: "/media",
 						AutoExtract: AutoExtract{
-							Languages:    []string{"eng"},
-							Formats:      []string{"ass"},
-							OutputFormat: "srt",
+							Languages: []language.Tag{language.English},
+							Formats: AutoExtractFormat{
+								ASS: AutoExtractASS{
+									Enabled: true,
+								},
+							},
+							RawStreamTitleKeywords: []string{"Full", "Dialogue"},
 						},
 					},
 				},
