@@ -14,6 +14,7 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 	"github.com/nandesh-dev/subtle/pkgs/pgs"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
+	"github.com/nandesh-dev/subtle/pkgs/tesseract"
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 	"golang.org/x/text/language"
 )
@@ -117,16 +118,15 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 		case subtitle.TextSubtitle:
 			subtitleEntry := db.Subtitle{
 				Language: rawStream.Language().String(),
-				Filepath: "",
-				IsImage:  false,
 				Segments: make([]db.Segment, 0),
 			}
 
 			for _, segment := range sub.Segments() {
 				segmentEntry := db.Segment{
-					StartTime: segment.Start(),
-					EndTime:   segment.End(),
-					Text:      segment.Text(),
+					StartTime:    segment.Start(),
+					EndTime:      segment.End(),
+					Text:         segment.Text(),
+					OriginalText: segment.Text(),
 				}
 
 				subtitleEntry.Segments = append(subtitleEntry.Segments, segmentEntry)
@@ -138,10 +138,11 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 		case subtitle.ImageSubtitle:
 			subtitleEntry := db.Subtitle{
 				Language: rawStream.Language().String(),
-				Filepath: "",
-				IsImage:  true,
 				Segments: make([]db.Segment, 0),
 			}
+
+			tesseractClient := tesseract.NewClient()
+			defer tesseractClient.Close()
 
 			for _, segment := range sub.Segments() {
 				imageDataBuffer := new(bytes.Buffer)
@@ -150,10 +151,17 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 					continue
 				}
 
+				text, err := tesseractClient.ExtractTextFromPNGImage(*imageDataBuffer, rawStream.Language())
+				if err != nil {
+					warnings.AddWarning(fmt.Errorf("Error extracting text from image: %v", err))
+				}
+
 				segmentEntry := db.Segment{
-					StartTime: segment.Start(),
-					EndTime:   segment.End(),
-					ImageData: imageDataBuffer.Bytes(),
+					StartTime:     segment.Start(),
+					EndTime:       segment.End(),
+					Text:          text,
+					OriginalText:  text,
+					OriginalImage: imageDataBuffer.Bytes(),
 				}
 
 				subtitleEntry.Segments = append(subtitleEntry.Segments, segmentEntry)

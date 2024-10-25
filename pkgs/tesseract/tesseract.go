@@ -44,3 +44,16 @@ func (c *TesseractClient) ExtractTextFromImage(img image.Image, lang language.Ta
 
 	return text, nil
 }
+
+func (c *TesseractClient) ExtractTextFromPNGImage(buf bytes.Buffer, lang language.Tag) (string, error) {
+	if err := c.gosseractClient.SetImageFromBytes(buf.Bytes()); err != nil {
+		return "", fmt.Errorf("Error scanning image: %v", err)
+	}
+
+	text, err := c.gosseractClient.Text()
+	if err != nil {
+		return "", fmt.Errorf("Error getting text from gosseract: %v", err)
+	}
+
+	return text, nil
+}

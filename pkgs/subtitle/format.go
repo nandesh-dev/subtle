@@ -22,3 +22,16 @@ func ParseFormat(f string) (Format, error) {
 
 	return ASS, fmt.Errorf("Invalid format: %v", f)
 }
+
+func MapFormat(f Format) string {
+	switch f {
+	case ASS:
+		return "ass"
+	case PGS:
+		return "pgs"
+	case SRT:
+		return "srt"
+	}
+
+	return ""
+}

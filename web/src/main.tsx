@@ -11,6 +11,7 @@ import { createGrpcWebTransport } from '@connectrpc/connect-web'
 import { createClient } from '@connectrpc/connect'
 import { MediaService } from '../gen/proto/media/media_connect'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Video } from './routes/media/video/video'
 
 const router = createBrowserRouter([
     {
@@ -22,8 +23,12 @@ const router = createBrowserRouter([
                 element: <Home />,
             },
             {
-                path: 'media/*',
+                path: 'media',
                 element: <Media />,
+            },
+            {
+                path: 'video',
+                element: <Video />,
             },
         ],
     },

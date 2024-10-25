@@ -21,6 +21,5 @@ func main() {
 	}
 
 	server := server.New()
-
 	server.Listen(3000, true)
 }

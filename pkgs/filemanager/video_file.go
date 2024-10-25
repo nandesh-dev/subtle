@@ -9,6 +9,12 @@ type VideoFile struct {
 	path string
 }
 
+func NewVideoFile(path string) *VideoFile {
+	return &VideoFile{
+		path: path,
+	}
+}
+
 func (v *VideoFile) DirectoryPath() string {
 	return filepath.Dir(v.path)
 }

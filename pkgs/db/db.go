@@ -25,9 +25,12 @@ type Subtitle struct {
 	VideoID int
 
 	Language string
-	Filepath string
-	IsImage  bool
 	Segments []Segment `gorm:"foreignKey:SubtitleID"`
+
+	ImportIsExternal       bool
+	ImportVideoStreamIndex int
+
+	ExportPath string
 }
 
 type Segment struct {
@@ -36,8 +39,10 @@ type Segment struct {
 
 	StartTime time.Duration
 	EndTime   time.Duration
-	ImageData []byte
 	Text      string
+
+	OriginalText  string
+	OriginalImage []byte
 }
 
 func DB() *gorm.DB {

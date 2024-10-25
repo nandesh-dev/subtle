@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FolderIcon, SearchIcon } from '../../../assets'
 import { Large, Small } from '../../utils/react_responsive'
 import { useProto } from '../../context/proto'
@@ -46,6 +46,7 @@ export function Media() {
                         {data?.videos.map((video) => {
                             return (
                                 <File
+                                    directoryPath={path}
                                     key={video.name}
                                     name={video.name}
                                     extension={video.extension}
@@ -84,6 +85,7 @@ export function Media() {
                         {data?.videos.map((video) => {
                             return (
                                 <File
+                                    directoryPath={path}
                                     key={video.name}
                                     name={video.name}
                                     extension={video.extension}
@@ -133,15 +135,31 @@ function Folder({ name, subtitle, path }: FolderProp) {
 }
 
 type FileProp = {
+    directoryPath: string
     name: string
     extension: string
 }
 
-function File({ name, extension }: FileProp) {
+function File({ name, extension, directoryPath }: FileProp) {
+    const navigate = useNavigate()
+
+    const onClick = () => {
+        const newSearchParam = new URLSearchParams({
+            directoryPath,
+            name,
+            extension,
+        })
+
+        navigate('/video?' + newSearchParam.toString(), {})
+    }
+
     return (
         <>
             <Small>
-                <button className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm">
+                <button
+                    className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm"
+                    onClick={onClick}
+                >
                     <p className="text-start text-sm text-gray-830">{name}</p>
                     <div className="flex flex-row justify-between">
                         <p className="text-sm text-gray-520">{extension}</p>
@@ -149,7 +167,10 @@ function File({ name, extension }: FileProp) {
                 </button>
             </Small>
             <Large>
-                <button className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm">
+                <button
+                    className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm"
+                    onClick={onClick}
+                >
                     <p className="text-start text-sm text-gray-830">{name}</p>
                     <div className="grid grid-cols-3">
                         <p className="text-sm text-gray-520">{extension}</p>
