@@ -27,7 +27,7 @@ const router = createBrowserRouter([
                 element: <Media />,
             },
             {
-                path: 'video',
+                path: 'media/video',
                 element: <Video />,
             },
         ],

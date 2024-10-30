@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package media;
 
+import 'proto/subtitle/subtitle.proto';
+
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/media";
 
 service MediaService {
@@ -16,7 +18,7 @@ message GetVideoRequest {
 }
 
 message GetVideoResponse {
-  repeated Subtitle subtitles = 1;
+  repeated subtitle.Subtitle subtitles = 1;
   repeated RawStream raw_streams = 2;
 }
 
@@ -25,15 +27,6 @@ message RawStream {
   string format = 2;
   string language = 3;
   string title = 4;
-}
-
-message Subtitle {
-  string language = 1;
-
-  bool importIsExternal = 2;
-  int32 importVideoStreamIndex = 3;
-
-  string exportPath = 4;
 }
 
 message GetDirectoryRequest {

@@ -8,7 +8,9 @@ import (
 	connectcors "connectrpc.com/cors"
 	"connectrpc.com/grpcreflect"
 	"github.com/nandesh-dev/subtle/generated/proto/media/mediaconnect"
+	"github.com/nandesh-dev/subtle/generated/proto/subtitle/subtitleconnect"
 	"github.com/nandesh-dev/subtle/internal/server/media"
+	"github.com/nandesh-dev/subtle/internal/server/subtitle"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
@@ -29,6 +31,9 @@ func (s *server) Listen(port int, enableReflection bool) error {
 	mux := http.NewServeMux()
 
 	path, handler := mediaconnect.NewMediaServiceHandler(media.ServiceHandler{})
+	mux.Handle(path, handler)
+
+	path, handler = subtitleconnect.NewSubtitleServiceHandler(subtitle.ServiceHandler{})
 	mux.Handle(path, handler)
 
 	if config.Config().Server.GRPCReflection {

@@ -10,7 +10,7 @@ export default {
             },
         },
         colors: {
-            primary: '#48CB89',
+            primary: '#2CBC74',
             yellow: '#CBB148',
             orange: '#CB7A48',
             red: '#CB484F',

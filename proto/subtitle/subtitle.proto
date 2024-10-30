@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package subtitle;
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/subtitle";
+
+service SubtitleService {
+  rpc GetAvailableExportFormats(GetAvailableExportFormatsRequest) returns (GetAvailableExportFormatsResponse);
+  rpc ExportSubtitle(ExportSubtitleRequest) returns (ExportSubtitleResponse);
+}
+
+message GetAvailableExportFormatsRequest {}
+
+message GetAvailableExportFormatsResponse {
+  repeated string formats = 1;
+}
+
+message Subtitle {
+  int32 id = 1;
+
+  string title = 2;
+  string language = 3;
+
+  bool importIsExternal = 4;
+  string exportPath = 5;
+}
+
+message ExportSubtitleRequest {
+  int32 subtitleId = 1;
+
+  string exportDirectoryPath = 2;
+  string exportFilename = 3;
+  string exportFormat = 4;
+}
+
+message ExportSubtitleResponse {}

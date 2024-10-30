@@ -54,10 +54,31 @@ export function Video() {
                     </section>
                     <section className="grid w-full grid-flow-row gap-sm overflow-y-auto">
                         {data?.subtitles.map((subtitle) => {
+                            const isExported = subtitle.exportPath != ''
                             return (
-                                <p className="text-gray-830">
-                                    {JSON.stringify(subtitle)}
-                                </p>
+                                <div className="grid grid-cols-2 items-center gap-sm rounded-sm bg-gray-80">
+                                    <div className="p-sm">
+                                        <p className="text-sm text-gray-830">
+                                            {subtitle.title}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 items-center p-xs">
+                                        <p className="text-center text-gray-520">
+                                            {subtitle.importIsExternal
+                                                ? 'External'
+                                                : 'Internal'}
+                                        </p>
+                                        <p className="text-center text-gray-520">
+                                            {subtitle.language}
+                                        </p>
+                                        <button
+                                            className={`rounded-xs px-sm py-xs text-xs font-medium text-gray-830 ${isExported ? 'bg-red' : 'bg-primary'}`}
+                                        >
+                                            {isExported ? 'Delete' : 'Export'}
+                                        </button>
+                                    </div>
+                                </div>
                             )
                         })}
                         <div className="flex w-full flex-row items-center gap-md">
@@ -68,9 +89,24 @@ export function Video() {
                         </div>
                         {data?.rawStreams.map((rawStream) => {
                             return (
-                                <p className="text-gray-830">
-                                    {JSON.stringify(rawStream)}
-                                </p>
+                                <>
+                                    <div className="grid grid-cols-6 items-center rounded-sm bg-gray-80 p-xs pl-sm">
+                                        <p className="col-span-3 text-gray-830">
+                                            {rawStream.title}
+                                        </p>
+                                        <p className="text-center text-gray-520">
+                                            {rawStream.format}
+                                        </p>
+                                        <p className="text-center text-gray-520">
+                                            {rawStream.language}
+                                        </p>
+                                        <button
+                                            className={`rounded-xs bg-orange px-sm py-xs text-xs font-medium text-gray-830`}
+                                        >
+                                            Extract
+                                        </button>
+                                    </div>
+                                </>
                             )
                         })}
                     </section>

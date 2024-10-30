@@ -150,7 +150,7 @@ function File({ name, extension, directoryPath }: FileProp) {
             extension,
         })
 
-        navigate('/video?' + newSearchParam.toString(), {})
+        navigate('/media/video?' + newSearchParam.toString(), {})
     }
 
     return (
