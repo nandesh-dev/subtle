@@ -21,16 +21,16 @@ message Subtitle {
   string title = 2;
   string language = 3;
 
-  bool importIsExternal = 4;
-  string exportPath = 5;
+  bool import_is_external = 4;
+  string export_path = 5;
 }
 
 message ExportSubtitleRequest {
-  int32 subtitleId = 1;
+  int32 subtitle_id = 1;
 
-  string exportDirectoryPath = 2;
-  string exportFilename = 3;
-  string exportFormat = 4;
+  string export_directory_path = 2;
+  string export_filename = 3;
+  string export_format = 4;
 }
 
 message ExportSubtitleResponse {}
