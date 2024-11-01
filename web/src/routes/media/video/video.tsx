@@ -22,7 +22,7 @@ export function Video() {
     }
 
     const { data } = useQuery({
-        queryKey: [],
+        queryKey: ['get-video', name, extension, directoryPath],
         queryFn: () =>
             MediaServiceClient?.getVideo(
                 new GetVideoRequest({

@@ -2,8 +2,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FolderIcon, SearchIcon } from '../../../assets'
 import { Large, Small } from '../../utils/react_responsive'
 import { useProto } from '../../context/proto'
-import { GetDirectoryRequest } from '../../../gen/proto/media/media_pb'
-import { useQuery } from '@tanstack/react-query'
+import {
+    GetDirectoryRequest,
+    GetVideoRequest,
+} from '../../../gen/proto/media/media_pb'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 
 export function Media() {
     const { MediaServiceClient } = useProto()
@@ -12,7 +16,7 @@ export function Media() {
     const path = searchParams.get('path') || ''
 
     const { data } = useQuery({
-        queryKey: [path],
+        queryKey: ['get-directory', path],
         queryFn: () =>
             MediaServiceClient?.getDirectory(new GetDirectoryRequest({ path })),
     })
@@ -109,11 +113,28 @@ type FolderProp = {
 }
 
 function Folder({ name, subtitle, path }: FolderProp) {
+    const queryClient = useQueryClient()
+    const { MediaServiceClient } = useProto()
     const [searchParams, setSearchParams] = useSearchParams()
+    const [isPrefetched, setIsPrefetched] = useState(false)
 
     return (
         <button
             className="grid grid-cols-[auto_1fr] gap-md rounded-sm bg-gray-80 p-md"
+            onMouseEnter={
+                isPrefetched
+                    ? undefined
+                    : () => {
+                          queryClient.prefetchQuery({
+                              queryKey: ['get-directory', path],
+                              queryFn: () =>
+                                  MediaServiceClient?.getDirectory(
+                                      new GetDirectoryRequest({ path })
+                                  ),
+                          })
+                          setIsPrefetched(true)
+                      }
+            }
             onClick={() => {
                 const newSearchParam = new URLSearchParams(searchParams)
                 newSearchParam.set('path', path)
@@ -141,6 +162,9 @@ type FileProp = {
 }
 
 function File({ name, extension, directoryPath }: FileProp) {
+    const queryClient = useQueryClient()
+    const { MediaServiceClient } = useProto()
+    const [isPrefetched, setIsPrefetched] = useState(false)
     const navigate = useNavigate()
 
     const onClick = () => {
@@ -153,12 +177,31 @@ function File({ name, extension, directoryPath }: FileProp) {
         navigate('/media/video?' + newSearchParam.toString(), {})
     }
 
+    const onMouseEnter = isPrefetched
+        ? undefined
+        : () => {
+              queryClient.prefetchQuery({
+                  queryKey: ['get-video', name, extension, directoryPath],
+                  queryFn: () =>
+                      MediaServiceClient?.getVideo(
+                          new GetVideoRequest({
+                              name,
+                              extension,
+                              directoryPath,
+                          })
+                      ),
+              })
+
+              setIsPrefetched(true)
+          }
+
     return (
         <>
             <Small>
                 <button
                     className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm"
                     onClick={onClick}
+                    onMouseEnter={onMouseEnter}
                 >
                     <p className="text-start text-sm text-gray-830">{name}</p>
                     <div className="flex flex-row justify-between">
@@ -170,6 +213,7 @@ function File({ name, extension, directoryPath }: FileProp) {
                 <button
                     className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm"
                     onClick={onClick}
+                    onMouseEnter={onMouseEnter}
                 >
                     <p className="text-start text-sm text-gray-830">{name}</p>
                     <div className="grid grid-cols-3">
