@@ -9,12 +9,11 @@ option go_package = "github.com/nandesh-dev/subtle/generated/proto/media";
 service MediaService {
   rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);
   rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
+  rpc ExtractRawStream(ExtractRawStreamRequest) returns (ExtractRawStreamResponse);
 }
 
 message GetVideoRequest {
-  string directory_path = 1;
-  string name = 2;
-  string extension = 3;
+  int32 id = 1;
 }
 
 message GetVideoResponse {
@@ -22,28 +21,38 @@ message GetVideoResponse {
   repeated RawStream raw_streams = 2;
 }
 
-message RawStream {
-  int32 index = 1;
-  string format = 2;
-  string language = 3;
-  string title = 4;
-}
-
 message GetDirectoryRequest {
   string path = 1;
 }
 
-message Video {
-  string name = 1;
-  string extension = 2;
+message GetDirectoryResponse {
+  repeated Directory directories = 1;
+  repeated Video videos = 2;
 }
+
+message ExtractRawStreamRequest {
+  int32 video_id = 1;
+  int32 raw_stream_index = 2;
+
+  string title = 3;
+}
+
+message ExtractRawStreamResponse {}
 
 message Directory {
   string path = 1;
   string name = 2;
 }
 
-message GetDirectoryResponse {
-  repeated Directory directories = 1;
-  repeated Video videos = 2;
+message Video {
+  int32 id = 1;
+  string base_name = 2;
+  string extension = 3;
+}
+
+message RawStream {
+  int32 index = 1;
+  string format = 2;
+  string language = 3;
+  string title = 4;
 }

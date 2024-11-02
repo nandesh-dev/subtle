@@ -29,7 +29,7 @@ message ExportSubtitleRequest {
   int32 subtitle_id = 1;
 
   string export_directory_path = 2;
-  string export_filename = 3;
+  string export_basename = 3;
   string export_format = 4;
 }
 

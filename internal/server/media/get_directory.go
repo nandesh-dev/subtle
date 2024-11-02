@@ -2,11 +2,13 @@ package media
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"connectrpc.com/connect"
 	"github.com/nandesh-dev/subtle/generated/proto/media"
 	"github.com/nandesh-dev/subtle/pkgs/config"
+	"github.com/nandesh-dev/subtle/pkgs/db"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 )
 
@@ -41,8 +43,21 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 	}
 
 	for _, video := range dir.VideoFiles() {
+		var videoEntry db.Video
+
+		if err := db.DB().Where(&db.Video{
+			DirectoryPath: video.DirectoryPath(),
+			Filename:      video.Filename(),
+		}).
+			Preload("Subtitles").
+			Preload("Subtitles.Segments").
+			First(&videoEntry).Error; err != nil {
+			return nil, fmt.Errorf("Error getting video entry: %v", err)
+		}
+
 		res.Videos = append(res.Videos, &media.Video{
-			Name:      video.Basename(),
+			Id:        int32(videoEntry.ID),
+			BaseName:  video.Basename(),
 			Extension: video.Extension(),
 		})
 	}

@@ -21,6 +21,18 @@ export function Media() {
             MediaServiceClient?.getDirectory(new GetDirectoryRequest({ path })),
     })
 
+    const Videos = () =>
+        data?.videos.map((video) => {
+            return (
+                <File
+                    id={video.id}
+                    key={video.baseName}
+                    baseName={video.baseName}
+                    extension={video.extension}
+                />
+            )
+        })
+
     return (
         <>
             <Small>
@@ -47,16 +59,7 @@ export function Media() {
                             className="h-[4px] rounded-sm bg-gray-80"
                             content="2"
                         />
-                        {data?.videos.map((video) => {
-                            return (
-                                <File
-                                    directoryPath={path}
-                                    key={video.name}
-                                    name={video.name}
-                                    extension={video.extension}
-                                />
-                            )
-                        })}
+                        <Videos />
                     </section>
                 </section>
             </Small>
@@ -86,16 +89,7 @@ export function Media() {
                             })}
                         </div>
                         <div className="h-[4px] rounded-sm bg-gray-80" />
-                        {data?.videos.map((video) => {
-                            return (
-                                <File
-                                    directoryPath={path}
-                                    key={video.name}
-                                    name={video.name}
-                                    extension={video.extension}
-                                />
-                            )
-                        })}
+                        <Videos />
                     </section>
                 </section>
             </Large>
@@ -156,23 +150,19 @@ function Folder({ name, subtitle, path }: FolderProp) {
 }
 
 type FileProp = {
-    directoryPath: string
-    name: string
+    id: number
+    baseName: string
     extension: string
 }
 
-function File({ name, extension, directoryPath }: FileProp) {
+function File({ id, baseName, extension }: FileProp) {
     const queryClient = useQueryClient()
     const { MediaServiceClient } = useProto()
     const [isPrefetched, setIsPrefetched] = useState(false)
     const navigate = useNavigate()
 
     const onClick = () => {
-        const newSearchParam = new URLSearchParams({
-            directoryPath,
-            name,
-            extension,
-        })
+        const newSearchParam = new URLSearchParams({ id: id.toString() })
 
         navigate('/media/video?' + newSearchParam.toString(), {})
     }
@@ -181,15 +171,9 @@ function File({ name, extension, directoryPath }: FileProp) {
         ? undefined
         : () => {
               queryClient.prefetchQuery({
-                  queryKey: ['get-video', name, extension, directoryPath],
+                  queryKey: ['get-video', id],
                   queryFn: () =>
-                      MediaServiceClient?.getVideo(
-                          new GetVideoRequest({
-                              name,
-                              extension,
-                              directoryPath,
-                          })
-                      ),
+                      MediaServiceClient?.getVideo(new GetVideoRequest({ id })),
               })
 
               setIsPrefetched(true)
@@ -203,7 +187,9 @@ function File({ name, extension, directoryPath }: FileProp) {
                     onClick={onClick}
                     onMouseEnter={onMouseEnter}
                 >
-                    <p className="text-start text-sm text-gray-830">{name}</p>
+                    <p className="text-start text-sm text-gray-830">
+                        {baseName}
+                    </p>
                     <div className="flex flex-row justify-between">
                         <p className="text-sm text-gray-520">{extension}</p>
                     </div>
@@ -215,7 +201,9 @@ function File({ name, extension, directoryPath }: FileProp) {
                     onClick={onClick}
                     onMouseEnter={onMouseEnter}
                 >
-                    <p className="text-start text-sm text-gray-830">{name}</p>
+                    <p className="text-start text-sm text-gray-830">
+                        {baseName}
+                    </p>
                     <div className="grid grid-cols-3">
                         <p className="text-sm text-gray-520">{extension}</p>
                     </div>

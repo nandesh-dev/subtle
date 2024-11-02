@@ -24,6 +24,7 @@ type Subtitle struct {
 	ID      int `gorm:"primaryKey"`
 	VideoID int
 
+	Title    string
 	Language string
 	Segments []Segment `gorm:"foreignKey:SubtitleID"`
 

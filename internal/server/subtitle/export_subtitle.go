@@ -31,7 +31,7 @@ func (s ServiceHandler) ExportSubtitle(ctx context.Context, req *connect.Request
 
 	out := srt.EncodeSubtitle(*sub)
 
-	path := filepath.Join(req.Msg.ExportDirectoryPath, req.Msg.ExportFilename+".srt")
+	path := filepath.Join(req.Msg.ExportDirectoryPath, req.Msg.ExportBasename+".srt")
 	if err := os.WriteFile(path, []byte(out), 0644); err != nil {
 		return nil, fmt.Errorf("Error writting file to disk: %v", err)
 	}
