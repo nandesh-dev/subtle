@@ -29,9 +29,11 @@ type Subtitle struct {
 	Segments []Segment `gorm:"foreignKey:SubtitleID"`
 
 	ImportIsExternal       bool
+	ImportFormat           string
 	ImportVideoStreamIndex int
 
-	ExportPath string
+	ExportPath   string
+	ExportFormat string
 }
 
 type Segment struct {

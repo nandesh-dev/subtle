@@ -5,32 +5,31 @@ package subtitle;
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/subtitle";
 
 service SubtitleService {
-  rpc GetAvailableExportFormats(GetAvailableExportFormatsRequest) returns (GetAvailableExportFormatsResponse);
-  rpc ExportSubtitle(ExportSubtitleRequest) returns (ExportSubtitleResponse);
+  rpc GetSubtitle(GetSubtitleRequest) returns (GetSubtitleResponse);
 }
 
-message GetAvailableExportFormatsRequest {}
-
-message GetAvailableExportFormatsResponse {
-  repeated string formats = 1;
-}
-
-message Subtitle {
+message GetSubtitleRequest {
   int32 id = 1;
+}
 
+message GetSubtitleResponse {
+  int32 id = 1;
   string title = 2;
   string language = 3;
 
-  bool import_is_external = 4;
-  string export_path = 5;
+  bool is_processing = 4;
+
+  Import import = 5;
+  repeated int32 segment_ids = 6;
+  optional Export export = 7;
 }
 
-message ExportSubtitleRequest {
-  int32 subtitle_id = 1;
-
-  string export_directory_path = 2;
-  string export_basename = 3;
-  string export_format = 4;
+message Import {
+  bool is_external = 1;
+  string format = 2;
 }
 
-message ExportSubtitleResponse {}
+message Export {
+  string path = 1;
+  string format = 2;
+}

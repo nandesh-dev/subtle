@@ -13,33 +13,25 @@ import (
 )
 
 func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[media.GetDirectoryRequest]) (*connect.Response[media.GetDirectoryResponse], error) {
-	if req.Msg.Path == "/" || req.Msg.Path == "" {
-		res := media.GetDirectoryResponse{
-			Directories: make([]*media.Directory, 0),
-			Videos:      make([]*media.Video, 0),
-		}
+	res := media.GetDirectoryResponse{
+		Path:          req.Msg.Path,
+		Name:          filepath.Base(req.Msg.Path),
+		ChildrenPaths: make([]string, 0),
+		VideoIds:      make([]int32, 0),
+	}
 
+	if req.Msg.Path == "/" || req.Msg.Path == "" {
 		for _, rootDirectory := range config.Config().Media.RootDirectories {
-			res.Directories = append(res.Directories, &media.Directory{
-				Path: rootDirectory.Path,
-				Name: filepath.Base(rootDirectory.Path),
-			})
+			res.ChildrenPaths = append(res.ChildrenPaths, rootDirectory.Path)
 		}
 
 		return connect.NewResponse(&res), nil
 	}
 
-	res := media.GetDirectoryResponse{
-		Directories: make([]*media.Directory, 0),
-	}
-
 	dir, _, _ := filemanager.ReadDirectory(req.Msg.Path)
 
 	for _, child := range dir.Children() {
-		res.Directories = append(res.Directories, &media.Directory{
-			Path: child.Path(),
-			Name: filepath.Base(child.Path()),
-		})
+		res.ChildrenPaths = append(res.ChildrenPaths, child.Path())
 	}
 
 	for _, video := range dir.VideoFiles() {
@@ -49,17 +41,11 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 			DirectoryPath: video.DirectoryPath(),
 			Filename:      video.Filename(),
 		}).
-			Preload("Subtitles").
-			Preload("Subtitles.Segments").
 			First(&videoEntry).Error; err != nil {
 			return nil, fmt.Errorf("Error getting video entry: %v", err)
 		}
 
-		res.Videos = append(res.Videos, &media.Video{
-			Id:        int32(videoEntry.ID),
-			BaseName:  video.Basename(),
-			Extension: video.Extension(),
-		})
+		res.VideoIds = append(res.VideoIds, int32(videoEntry.ID))
 	}
 
 	return connect.NewResponse(&res), nil

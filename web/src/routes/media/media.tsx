@@ -6,8 +6,7 @@ import {
     GetDirectoryRequest,
     GetVideoRequest,
 } from '../../../gen/proto/media/media_pb'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 export function Media() {
     const { MediaServiceClient } = useProto()
@@ -22,27 +21,13 @@ export function Media() {
     })
 
     const Videos = () =>
-        data?.videos.map((video) => {
-            return (
-                <File
-                    id={video.id}
-                    key={video.baseName}
-                    baseName={video.baseName}
-                    extension={video.extension}
-                />
-            )
+        data?.videoIds.map((id) => {
+            return <Video id={id} key={id} />
         })
 
     const Folders = () =>
-        data?.directories.map((directory) => {
-            return (
-                <Folder
-                    key={directory.path}
-                    name={directory.name}
-                    path={directory.path}
-                    subtitle={{ present: 10, total: 20 }}
-                />
-            )
+        data?.childrenPaths.map((path) => {
+            return <Folder key={path} path={path} />
         })
 
     return (
@@ -58,15 +43,15 @@ export function Media() {
                     </section>
                     <section className="grid grid-flow-row gap-sm overflow-y-auto pb-xxl">
                         <Folders />
-                        {(data?.videos.length || 0) > 0 && (
+                        {(data?.videoIds.length || 0) > 0 && (
                             <>
                                 <div className="flex w-full flex-row items-center gap-md">
-                                    <h3 className="text-nowrap text-md text-gray-830">
+                                    <h3 className="text-nowrap text-md text-gray-520">
                                         Videos
                                     </h3>
                                     <div className="h-[4px] w-full rounded-sm bg-gray-80" />
                                 </div>
-                                <Videos />{' '}
+                                <Videos />
                             </>
                         )}
                     </section>
@@ -85,15 +70,15 @@ export function Media() {
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-sm">
                             <Folders />
                         </div>
-                        {(data?.videos.length || 0) > 0 && (
+                        {(data?.videoIds.length || 0) > 0 && (
                             <>
                                 <div className="flex w-full flex-row items-center gap-md">
-                                    <h3 className="text-nowrap text-md text-gray-830">
+                                    <h3 className="text-nowrap text-md text-gray-520">
                                         Videos
                                     </h3>
                                     <div className="h-[4px] w-full rounded-sm bg-gray-80" />
                                 </div>
-                                <Videos />{' '}
+                                <Videos />
                             </>
                         )}
                     </section>
@@ -104,37 +89,39 @@ export function Media() {
 }
 
 type FolderProp = {
-    name: string
     path: string
-    subtitle: {
-        present: number
-        total: number
-    }
 }
 
-function Folder({ name, subtitle, path }: FolderProp) {
-    const queryClient = useQueryClient()
+function Folder({ path }: FolderProp) {
     const { MediaServiceClient } = useProto()
     const [searchParams, setSearchParams] = useSearchParams()
-    const [isPrefetched, setIsPrefetched] = useState(false)
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['get-directory', path],
+        queryFn: () =>
+            MediaServiceClient?.getDirectory(new GetDirectoryRequest({ path })),
+    })
+
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-[auto_1fr] gap-md rounded-sm bg-gray-80 p-md">
+                <FolderIcon className="h-full fill-red" />
+                <div className="">
+                    <p className="text-start text-sm text-gray-830">
+                        Loading...
+                    </p>
+                    <div className="flex w-full flex-row justify-between">
+                        <p className="text-xs text-gray-520">Subtitle</p>
+                        <p className="text-xs text-gray-520">../..</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <button
             className="grid grid-cols-[auto_1fr] gap-md rounded-sm bg-gray-80 p-md"
-            onMouseEnter={
-                isPrefetched
-                    ? undefined
-                    : () => {
-                          queryClient.prefetchQuery({
-                              queryKey: ['get-directory', path],
-                              queryFn: () =>
-                                  MediaServiceClient?.getDirectory(
-                                      new GetDirectoryRequest({ path })
-                                  ),
-                          })
-                          setIsPrefetched(true)
-                      }
-            }
             onClick={() => {
                 const newSearchParam = new URLSearchParams(searchParams)
                 newSearchParam.set('path', path)
@@ -143,12 +130,10 @@ function Folder({ name, subtitle, path }: FolderProp) {
         >
             <FolderIcon className="h-full fill-red" />
             <div className="">
-                <p className="text-start text-sm text-gray-830">{name}</p>
+                <p className="text-start text-sm text-gray-830">{data?.name}</p>
                 <div className="flex w-full flex-row justify-between">
                     <p className="text-xs text-gray-520">Subtitle</p>
-                    <p className="text-xs text-gray-520">
-                        {subtitle.present}/{subtitle.total}
-                    </p>
+                    <p className="text-xs text-gray-520">10/20</p>
                 </div>
             </div>
         </button>
@@ -157,33 +142,45 @@ function Folder({ name, subtitle, path }: FolderProp) {
 
 type FileProp = {
     id: number
-    baseName: string
-    extension: string
 }
 
-function File({ id, baseName, extension }: FileProp) {
-    const queryClient = useQueryClient()
+function Video({ id }: FileProp) {
     const { MediaServiceClient } = useProto()
-    const [isPrefetched, setIsPrefetched] = useState(false)
     const navigate = useNavigate()
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['get-video', id],
+        queryFn: () =>
+            MediaServiceClient?.getVideo(new GetVideoRequest({ id })),
+    })
+
+    if (isLoading) {
+        return (
+            <>
+                <Small>
+                    <div className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm">
+                        <p className="text-start text-sm text-gray-830">...</p>
+                        <div className="flex flex-row justify-between">
+                            <p className="text-sm text-gray-520">...</p>
+                        </div>
+                    </div>
+                </Small>
+                <Large>
+                    <div className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm">
+                        <p className="text-start text-sm text-gray-830">...</p>
+                        <div className="grid grid-cols-3">
+                            <p className="text-sm text-gray-520">...</p>
+                        </div>
+                    </div>
+                </Large>
+            </>
+        )
+    }
 
     const onClick = () => {
         const newSearchParam = new URLSearchParams({ id: id.toString() })
-
-        navigate('/media/video?' + newSearchParam.toString(), {})
+        navigate('/video?' + newSearchParam.toString(), {})
     }
-
-    const onMouseEnter = isPrefetched
-        ? undefined
-        : () => {
-              queryClient.prefetchQuery({
-                  queryKey: ['get-video', id],
-                  queryFn: () =>
-                      MediaServiceClient?.getVideo(new GetVideoRequest({ id })),
-              })
-
-              setIsPrefetched(true)
-          }
 
     return (
         <>
@@ -191,13 +188,14 @@ function File({ id, baseName, extension }: FileProp) {
                 <button
                     className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm"
                     onClick={onClick}
-                    onMouseEnter={onMouseEnter}
                 >
                     <p className="text-start text-sm text-gray-830">
-                        {baseName}
+                        {data?.baseName}
                     </p>
                     <div className="flex flex-row justify-between">
-                        <p className="text-sm text-gray-520">{extension}</p>
+                        <p className="text-sm text-gray-520">
+                            {data?.extension}
+                        </p>
                     </div>
                 </button>
             </Small>
@@ -205,13 +203,14 @@ function File({ id, baseName, extension }: FileProp) {
                 <button
                     className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm"
                     onClick={onClick}
-                    onMouseEnter={onMouseEnter}
                 >
                     <p className="text-start text-sm text-gray-830">
-                        {baseName}
+                        {data?.baseName}
                     </p>
-                    <div className="grid grid-cols-3">
-                        <p className="text-sm text-gray-520">{extension}</p>
+                    <div className="grid grid-cols-3 justify-items-end">
+                        <p className="text-sm text-gray-520">
+                            {data?.extension}
+                        </p>
                     </div>
                 </button>
             </Large>

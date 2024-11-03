@@ -5,13 +5,14 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Root } from './routes/root'
 import { Home } from './routes/home/home'
 import { Media } from './routes/media/media'
+import { Video } from './routes/video/video'
 
 import { ProtoContent, ProtoContext } from './context/proto'
 import { createGrpcWebTransport } from '@connectrpc/connect-web'
 import { createClient } from '@connectrpc/connect'
 import { MediaService } from '../gen/proto/media/media_connect'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Video } from './routes/media/video/video'
+import { SubtitleService } from '../gen/proto/subtitle/subtitle_connect'
 
 const router = createBrowserRouter([
     {
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
                 element: <Media />,
             },
             {
-                path: 'media/video',
+                path: 'video',
                 element: <Video />,
             },
         ],
@@ -40,6 +41,7 @@ const transport = createGrpcWebTransport({
 
 const proto: ProtoContent = {
     MediaServiceClient: createClient(MediaService, transport),
+    SubtitleServiceClient: createClient(SubtitleService, transport),
 }
 
 const query = new QueryClient()
