@@ -1,5 +1,11 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { CrossIcon, FileIcon, HomeIcon } from '../../assets'
+import {
+    CrossIcon,
+    FileIcon,
+    HomeIcon,
+    HorizontalSubtitleDrop,
+    VerticalSubtitleDrop,
+} from '../../assets'
 import { Desktop, Mobile, Tablet } from '../utils/react_responsive'
 import { ReactNode, useState } from 'react'
 import { PopoverContent, PopoverContext } from '../context/popover'
@@ -29,7 +35,10 @@ export function Root() {
                             <nav className="w-full rounded-sm bg-gray-120 px-md py-sm">
                                 <ul className="flex flex-row justify-between">
                                     <li>
-                                        <Link to={'/home'}>
+                                        <Link
+                                            to={'/home'}
+                                            aria-label="Switch to home page"
+                                        >
                                             <HomeIcon
                                                 className={
                                                     location.pathname.startsWith(
@@ -42,7 +51,10 @@ export function Root() {
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to={'/media'}>
+                                        <Link
+                                            to={'/media'}
+                                            aria-label="Switch to media page"
+                                        >
                                             <FileIcon
                                                 className={
                                                     location.pathname.startsWith(
@@ -69,7 +81,10 @@ export function Root() {
                             <nav>
                                 <ul className="flex flex-col items-center justify-between gap-sm">
                                     <li>
-                                        <Link to={'/home'}>
+                                        <Link
+                                            to={'/home'}
+                                            aria-label="Switch to home page"
+                                        >
                                             <HomeIcon
                                                 className={
                                                     location.pathname.startsWith(
@@ -82,7 +97,10 @@ export function Root() {
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to={'/media'}>
+                                        <Link
+                                            to={'/media'}
+                                            aria-label="Switch to media page"
+                                        >
                                             <FileIcon
                                                 className={
                                                     location.pathname.startsWith(
@@ -96,9 +114,7 @@ export function Root() {
                                     </li>
                                 </ul>
                             </nav>
-                            <p className="text-vertical text-sm text-gray-190">
-                                Drop Your Subtitle
-                            </p>
+                            <VerticalSubtitleDrop />
                         </section>
                         <section className="overflow-hidden">
                             <Outlet />
@@ -120,11 +136,11 @@ export function Root() {
                                         cx="120"
                                         cy="120"
                                         r="104"
-                                        stroke-width="16"
+                                        strokeWidth="16"
                                         fill="none"
-                                        stroke-linecap="round"
-                                        stroke-dasharray="654"
-                                        stroke-dashoffset="100"
+                                        strokeLinecap="round"
+                                        strokeDasharray="654"
+                                        strokeDashoffset="100"
                                         transform="rotate(90 120 120)"
                                     />
                                 </svg>
@@ -168,11 +184,7 @@ export function Root() {
                                 </ul>
                             </nav>
                             <div className="outline-sm flex aspect-[3/4] w-full flex-col items-center justify-center rounded-sm outline-dashed outline-gray-190">
-                                <p className="text-sm text-gray-190">Drop</p>
-                                <p className="text-sm text-gray-190">Your</p>
-                                <p className="text-sm text-gray-190">
-                                    Subtitle
-                                </p>
+                                <HorizontalSubtitleDrop />
                             </div>
                         </section>
                         <section className="overflow-hidden">
