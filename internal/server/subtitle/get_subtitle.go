@@ -19,6 +19,7 @@ func (s ServiceHandler) GetSubtitle(ctx context.Context, req *connect.Request[su
 	}
 
 	res := subtitle_proto.GetSubtitleResponse{
+		VideoId:      int32(subtitleEntry.VideoID),
 		Id:           req.Msg.Id,
 		Title:        subtitleEntry.Title,
 		Language:     subtitleEntry.Language,
