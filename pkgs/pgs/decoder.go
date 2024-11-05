@@ -3,6 +3,7 @@ package pgs
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
@@ -99,6 +100,10 @@ func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.ImageSubtitle, w
 
 	sub := subtitle.NewImageSubtitle()
 
+	previousStartTimestamp := time.Second * 0
+
+	slices.Reverse(displaySets)
+
 	for _, displaySet := range displaySets {
 		images, err := displaySet.parse()
 		if err != nil {
@@ -107,9 +112,17 @@ func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.ImageSubtitle, w
 		}
 
 		for _, image := range images {
-			segment := subtitle.NewImageSegment(displaySet.Header.PTS, time.Second*0, image)
+			endTimestamp := previousStartTimestamp
+			if previousStartTimestamp.Nanoseconds() < displaySet.Header.PTS.Nanoseconds() {
+				fmt.Println("ah")
+				endTimestamp = displaySet.Header.PTS + time.Second*15
+			}
+
+			segment := subtitle.NewImageSegment(displaySet.Header.PTS, endTimestamp, image)
 			sub.AddSegment(*segment)
 		}
+
+		previousStartTimestamp = displaySet.Header.PTS
 	}
 
 	return sub, *warnings, nil
