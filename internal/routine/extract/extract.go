@@ -17,6 +17,7 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/tesseract"
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 	"golang.org/x/text/language"
+	"golang.org/x/text/language/display"
 )
 
 func Run() warning.WarningList {
@@ -114,12 +115,19 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 			continue
 		}
 
+		subtitleEntry := db.Subtitle{
+			Language: rawStream.Language().String(),
+			Segments: make([]db.Segment, 0),
+		}
+
+		if rawStream.Title() != "" {
+			subtitleEntry.Title = rawStream.Title()
+		} else {
+			subtitleEntry.Title = fmt.Sprintf("%v#%v", display.Self.Name(rawStream.Language()), video.Basename())
+		}
+
 		switch sub := sub.(type) {
 		case subtitle.TextSubtitle:
-			subtitleEntry := db.Subtitle{
-				Language: rawStream.Language().String(),
-				Segments: make([]db.Segment, 0),
-			}
 
 			for _, segment := range sub.Segments() {
 				segmentEntry := db.Segment{
@@ -136,11 +144,6 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 
 			db.DB().Save(&videoEntry)
 		case subtitle.ImageSubtitle:
-			subtitleEntry := db.Subtitle{
-				Language: rawStream.Language().String(),
-				Segments: make([]db.Segment, 0),
-			}
-
 			tesseractClient := tesseract.NewClient()
 			defer tesseractClient.Close()
 
@@ -160,7 +163,6 @@ func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig c
 					StartTime:     segment.Start(),
 					EndTime:       segment.End(),
 					Text:          text,
-					OriginalText:  text,
 					OriginalImage: imageDataBuffer.Bytes(),
 				}
 
