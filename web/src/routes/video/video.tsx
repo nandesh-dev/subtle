@@ -69,6 +69,7 @@ type SubtitleProp = {
 }
 
 function Subtitle({ id }: SubtitleProp) {
+    const navigate = useNavigate()
     const { SubtitleServiceClient } = useProto()
     const { isLoading, data } = useQuery({
         queryKey: ['get-subtitle', id],
@@ -124,10 +125,18 @@ function Subtitle({ id }: SubtitleProp) {
         else statusText = 'Extracted'
     }
 
+    const navigateToSubtitle = () => {
+        const newSearchParam = new URLSearchParams({ id: id.toString() })
+        navigate('/subtitle?' + newSearchParam.toString())
+    }
+
     return (
         <>
             <Small>
-                <div className="grid grid-rows-2 gap-xs rounded-sm bg-gray-80 p-sm">
+                <button
+                    onClick={navigateToSubtitle}
+                    className="grid grid-rows-2 gap-xs rounded-sm bg-gray-80 p-sm"
+                >
                     <div className="flex flex-row justify-between">
                         <p className="text-sm text-gray-830">{data?.title}</p>
                         {data?.isProcessing ? <ProcessingIcon /> : <TickIcon />}
@@ -135,10 +144,13 @@ function Subtitle({ id }: SubtitleProp) {
                     <p className="text-start text-xs text-gray-520">
                         {statusText}
                     </p>
-                </div>
+                </button>
             </Small>
             <Large>
-                <div className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm">
+                <button
+                    onClick={navigateToSubtitle}
+                    className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm"
+                >
                     <p className="text-start text-sm text-gray-830">
                         {data?.title}
                     </p>
@@ -148,7 +160,7 @@ function Subtitle({ id }: SubtitleProp) {
                         </p>
                         {data?.isProcessing ? <ProcessingIcon /> : <TickIcon />}
                     </div>
-                </div>
+                </button>
             </Large>
         </>
     )

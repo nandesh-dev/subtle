@@ -6,6 +6,7 @@ import { Root } from './routes/root'
 import { Home } from './routes/home/home'
 import { Media } from './routes/media/media'
 import { Video } from './routes/video/video'
+import { Subtitle } from './routes/subtitle/subtitle'
 
 import { ProtoContent, ProtoContext } from './context/proto'
 import { createGrpcWebTransport } from '@connectrpc/connect-web'
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
             {
                 path: 'video',
                 element: <Video />,
+            },
+            {
+                path: 'subtitle',
+                element: <Subtitle />,
             },
         ],
     },
