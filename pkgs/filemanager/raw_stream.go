@@ -20,6 +20,16 @@ type RawStream struct {
 	title    string
 }
 
+func NewRawStream(filepath string, index int, format subtitle.Format, language language.Tag, title string) *RawStream {
+	return &RawStream{
+		filepath,
+		index,
+		format,
+		language,
+		title,
+	}
+}
+
 func (s *RawStream) Filepath() string {
 	return s.filepath
 }

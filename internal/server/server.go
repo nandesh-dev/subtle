@@ -27,7 +27,7 @@ func New() *server {
 	return &server{}
 }
 
-func (s *server) Listen(port int, enableReflection bool) error {
+func (s *server) Listen() error {
 	mux := http.NewServeMux()
 
 	path, handler := mediaconnect.NewMediaServiceHandler(media.ServiceHandler{})
@@ -36,21 +36,21 @@ func (s *server) Listen(port int, enableReflection bool) error {
 	path, handler = subtitleconnect.NewSubtitleServiceHandler(subtitle.ServiceHandler{})
 	mux.Handle(path, handler)
 
-	if config.Config().Server.GRPCReflection {
+	if config.Config().Server.Web.EnableGRPCReflection {
 		path, handler = grpcreflect.NewHandlerV1Alpha(grpcreflect.NewStaticReflector(
 			mediaconnect.MediaServiceName))
 		mux.Handle(path, handler)
 	}
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins: config.Config().Server.COROrigins,
+		AllowedOrigins: config.Config().Server.Web.COROrigins,
 		AllowedMethods: connectcors.AllowedMethods(),
 		AllowedHeaders: connectcors.AllowedHeaders(),
 		ExposedHeaders: connectcors.ExposedHeaders(),
 	})
 
 	http.ListenAndServe(
-		fmt.Sprintf("localhost:%v", port),
+		fmt.Sprintf("localhost:%v", config.Config().Server.Web.Port),
 		h2c.NewHandler(corsMiddleware.Handler(mux), &http2.Server{}),
 	)
 

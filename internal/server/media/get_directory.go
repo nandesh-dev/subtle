@@ -8,7 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/nandesh-dev/subtle/generated/proto/media"
 	"github.com/nandesh-dev/subtle/pkgs/config"
-	"github.com/nandesh-dev/subtle/pkgs/db"
+	"github.com/nandesh-dev/subtle/pkgs/database"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 )
 
@@ -21,7 +21,7 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 	}
 
 	if req.Msg.Path == "/" || req.Msg.Path == "" {
-		for _, rootDirectory := range config.Config().Media.RootDirectories {
+		for _, rootDirectory := range config.Config().MediaDirectories {
 			res.ChildrenPaths = append(res.ChildrenPaths, rootDirectory.Path)
 		}
 
@@ -35,9 +35,9 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 	}
 
 	for _, video := range dir.VideoFiles() {
-		var videoEntry db.Video
+		var videoEntry database.Video
 
-		if err := db.DB().Where(&db.Video{
+		if err := database.Database().Where(&database.Video{
 			DirectoryPath: video.DirectoryPath(),
 			Filename:      video.Filename(),
 		}).

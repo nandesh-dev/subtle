@@ -12,7 +12,7 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.ImageSubtitle, warning.WarningList, error) {
+func ExtractFromRawStream(rawStream filemanager.RawStream) (*subtitle.ImageSubtitle, warning.WarningList, error) {
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/nandesh-dev/subtle/pkgs/config"
@@ -34,7 +36,14 @@ func (logger *l) Error(title string, content error) {
 
 	defer file.Close()
 
-	if _, err := file.WriteString(fmt.Sprintf("%-24s - [ Error ] - ( %s ) - %s\n", time.Now().Format("2 Jan 2006 15:04:05 MST"), title, content.Error())); err != nil {
+	_, callerFile, callerLine, _ := runtime.Caller(1)
+
+	if _, err := file.WriteString(
+		fmt.Sprintf("%-24s - [ Error ] - ( %s ) - %s:%v - %s\n",
+			time.Now().Format("2 Jan 2006 15:04:05 MST"),
+			title,
+			filepath.Base(callerFile), callerLine,
+			content.Error())); err != nil {
 		log.Panicf("Error writting to log file: %v", err)
 	}
 }

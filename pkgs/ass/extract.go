@@ -30,7 +30,7 @@ const (
 	Format
 )
 
-func DecodeSubtitle(rawStream filemanager.RawStream) (*subtitle.TextSubtitle, warning.WarningList, error) {
+func ExtractFromRawStream(rawStream filemanager.RawStream) (*subtitle.TextSubtitle, warning.WarningList, error) {
 	warnings := warning.NewWarningList()
 
 	var subtitleBuf, errorBuf bytes.Buffer

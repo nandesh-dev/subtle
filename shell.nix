@@ -21,5 +21,7 @@ pkgs.mkShell {
   shellHook = ''
     go install github.com/bufbuild/buf/cmd/buf@latest
     [ -n "$(go env GOPATH)" ] && export PATH="$(go env GOPATH)/bin:$PATH"
+
+    export CONFIG_DIRECTORY="config"
   '';
 }

@@ -6,14 +6,14 @@ import (
 
 	"connectrpc.com/connect"
 	subtitle_proto "github.com/nandesh-dev/subtle/generated/proto/subtitle"
-	"github.com/nandesh-dev/subtle/pkgs/db"
+	"github.com/nandesh-dev/subtle/pkgs/database"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func (s ServiceHandler) GetSegment(ctx context.Context, req *connect.Request[subtitle_proto.GetSegmentRequest]) (*connect.Response[subtitle_proto.GetSegmentResponse], error) {
-	var segmentEntry db.Segment
+	var segmentEntry database.Segment
 
-	if err := db.DB().Where(&db.Segment{ID: int(req.Msg.Id)}).
+	if err := database.Database().Where(&database.Segment{ID: int(req.Msg.Id)}).
 		First(&segmentEntry).Error; err != nil {
 		return nil, fmt.Errorf("Error getting video entry: %v", err)
 	}

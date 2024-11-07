@@ -1,9 +1,10 @@
-package db
+package database
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/nandesh-dev/subtle/pkgs/config"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -24,9 +25,13 @@ type Subtitle struct {
 	ID      int `gorm:"primaryKey"`
 	VideoID int
 
-	Title    string
-	Language string
-	Segments []Segment `gorm:"foreignKey:SubtitleID"`
+	Title        string
+	Language     string
+	IsProcessing bool
+	Segments     []Segment `gorm:"foreignKey:SubtitleID"`
+
+	IsExtracted bool
+	IsFormated  bool
 
 	ImportIsExternal       bool
 	ImportFormat           string
@@ -48,17 +53,22 @@ type Segment struct {
 	OriginalImage []byte
 }
 
-func DB() *gorm.DB {
+type Routine struct {
+	Name      string
+	IsRunning bool
+}
+
+func Database() *gorm.DB {
 	return database
 }
 
 func Init() error {
-	db, err := gorm.Open(sqlite.Open("config/database.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.Config().Database.Path), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("Error opening database: %v", err)
 	}
 
-	if err = db.AutoMigrate(&Video{}, &Subtitle{}, &Segment{}); err != nil {
+	if err = db.AutoMigrate(&Video{}, &Subtitle{}, &Segment{}, &Routine{}); err != nil {
 		return fmt.Errorf("Error auto migrating database: %v", err)
 	}
 

@@ -1,179 +1,90 @@
 package extract
 
 import (
-	"bytes"
 	"fmt"
-	"image/png"
-	"log"
-	"slices"
 	"strings"
 
-	"github.com/nandesh-dev/subtle/pkgs/ass"
+	"github.com/nandesh-dev/subtle/internal/actions"
 	"github.com/nandesh-dev/subtle/pkgs/config"
-	"github.com/nandesh-dev/subtle/pkgs/db"
-	"github.com/nandesh-dev/subtle/pkgs/filemanager"
-	"github.com/nandesh-dev/subtle/pkgs/pgs"
+	"github.com/nandesh-dev/subtle/pkgs/database"
+	"github.com/nandesh-dev/subtle/pkgs/logger"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
-	"github.com/nandesh-dev/subtle/pkgs/tesseract"
-	"github.com/nandesh-dev/subtle/pkgs/warning"
 	"golang.org/x/text/language"
-	"golang.org/x/text/language/display"
 )
 
-func Run() warning.WarningList {
-	warnings := warning.NewWarningList()
-	for _, rootDirectoryConfig := range config.Config().Media.RootDirectories {
-		dir, _, err := filemanager.ReadDirectory(rootDirectoryConfig.Path)
-		if err != nil {
-			warnings.AddWarning(fmt.Errorf("Error reading root directory: %v; %v", rootDirectoryConfig.Path, err))
-			continue
-		}
+func Run() {
+	logger.Logger().Log("Extract Routine", "Running extract routine")
+	defer logger.Logger().Log("Extract Routine", "Extract routine complete")
 
-		warns := extractSubtitleFromDirectory(*dir, rootDirectoryConfig.AutoExtract)
-		warnings.Append(warns)
-	}
-
-	return *warnings
-}
-
-func extractSubtitleFromDirectory(dir filemanager.Directory, autoExtractConfig config.AutoExtract) warning.WarningList {
-	warnings := warning.NewWarningList()
-
-	for _, video := range dir.VideoFiles() {
-		var videoEntry db.Video
-		if err := db.DB().Where(&db.Video{DirectoryPath: video.DirectoryPath(), Filename: video.Filename()}).
+	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
+		var videoEntries []database.Video
+		database.Database().
+			Where("directory_path LIKE ?", fmt.Sprintf("%s%%", mediaDirectoryConfig.Path)).
 			Preload("Subtitles").
-			Preload("Subtitles.Segments").
-			First(&videoEntry).Error; err != nil {
-			log.Fatal("Error getting entry: ", err, video.DirectoryPath(), video.Filename())
-		}
+			Find(&videoEntries)
 
-		rawStreams, err := video.RawStreams()
-		if err != nil {
-			warnings.AddWarning(fmt.Errorf("Error extracting raw stream from video: %v; %v", video.Filepath(), err))
-			continue
-		}
+		for _, videoEntry := range videoEntries {
+			bestScore := -1
+			var bestSubtitleEntry *database.Subtitle
 
-		rawStreamRanks := map[filemanager.RawStream]int{}
-
-		for _, rawStream := range *rawStreams {
-			if !slices.ContainsFunc(videoEntry.Subtitles, func(subtitleEntry db.Subtitle) bool {
-				subtitleEntryLanguageTag, _ := language.Parse(subtitleEntry.Language)
-				return subtitleEntryLanguageTag == rawStream.Language()
-			}) && slices.ContainsFunc(autoExtractConfig.Languages, func(lang language.Tag) bool {
-				return lang == rawStream.Language()
-			}) {
-				rawStreamRanks[rawStream] = 1
-
-				for _, titleKeyword := range autoExtractConfig.RawStreamTitleKeywords {
-					if strings.Contains(rawStream.Title(), titleKeyword) {
-						rawStreamRanks[rawStream]++
-					}
-				}
-			}
-		}
-
-		highestRank := 0
-		var highestRankRawStream filemanager.RawStream
-		for rawStream, rank := range rawStreamRanks {
-			if rank >= highestRank {
-				highestRank = rank
-				highestRankRawStream = rawStream
-			}
-		}
-
-		if highestRank == 0 {
-			continue
-		}
-
-		rawStream := highestRankRawStream
-		var sub subtitle.Subtitle
-
-		switch rawStream.Format() {
-		case subtitle.ASS:
-			s, warns, err := ass.DecodeSubtitle(rawStream)
-			warnings.Append(warns)
-			if err != nil {
-				warnings.AddWarning(fmt.Errorf("Error decoding subtitle for video: %v; %v", video.Filepath(), err))
-				continue
-			}
-
-			sub = *s
-
-		case subtitle.PGS:
-			s, warns, err := pgs.DecodeSubtitle(rawStream)
-			warnings.Append(warns)
-			if err != nil {
-				warnings.AddWarning(fmt.Errorf("Error decoding subtitle for video: %v; %v", video.Filepath(), err))
-				continue
-			}
-
-			sub = *s
-		}
-
-		if sub == nil {
-			continue
-		}
-
-		subtitleEntry := db.Subtitle{
-			Language: rawStream.Language().String(),
-			Segments: make([]db.Segment, 0),
-		}
-
-		if rawStream.Title() != "" {
-			subtitleEntry.Title = rawStream.Title()
-		} else {
-			subtitleEntry.Title = fmt.Sprintf("%v#%v", display.Self.Name(rawStream.Language()), video.Basename())
-		}
-
-		switch sub := sub.(type) {
-		case subtitle.TextSubtitle:
-
-			for _, segment := range sub.Segments() {
-				segmentEntry := db.Segment{
-					StartTime:    segment.Start(),
-					EndTime:      segment.End(),
-					Text:         segment.Text(),
-					OriginalText: segment.Text(),
+			for _, subtitleEntry := range videoEntry.Subtitles {
+				logger.Logger().Log("Media Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
+				if subtitleEntry.IsExtracted {
+					break
 				}
 
-				subtitleEntry.Segments = append(subtitleEntry.Segments, segmentEntry)
-			}
+				logger.Logger().Log("Media Routine", fmt.Sprintf("Extracting subtitle: %v", subtitleEntry.Title))
 
-			videoEntry.Subtitles = append(videoEntry.Subtitles, subtitleEntry)
-
-			db.DB().Save(&videoEntry)
-		case subtitle.ImageSubtitle:
-			tesseractClient := tesseract.NewClient()
-			defer tesseractClient.Close()
-
-			for _, segment := range sub.Segments() {
-				imageDataBuffer := new(bytes.Buffer)
-				if err := png.Encode(imageDataBuffer, segment.Image()); err != nil {
-					warnings.AddWarning(fmt.Errorf("Error encoding image to png for video: %v; %v", video.Filepath(), err))
+				format, err := subtitle.ParseFormat(subtitleEntry.ImportFormat)
+				if err != nil {
+					logger.Logger().Error("Extract Routine", fmt.Errorf("Error parsing subtitle format: %v", err))
 					continue
 				}
 
-				text, err := tesseractClient.ExtractTextFromPNGImage(*imageDataBuffer, rawStream.Language())
+				lang, err := language.Parse(subtitleEntry.Language)
 				if err != nil {
-					warnings.AddWarning(fmt.Errorf("Error extracting text from image: %v", err))
+					logger.Logger().Error("Extract Routine", fmt.Errorf("Error parsing subtitle language: %v", err))
+					continue
 				}
 
-				segmentEntry := db.Segment{
-					StartTime:     segment.Start(),
-					EndTime:       segment.End(),
-					Text:          text,
-					OriginalImage: imageDataBuffer.Bytes(),
+				containsRequiredLanguage := false
+
+				switch format {
+				case subtitle.ASS:
+					for _, languageTag := range mediaDirectoryConfig.Extraction.Formats.ASS.Languages {
+						if lang == languageTag {
+							containsRequiredLanguage = true
+						}
+					}
+				case subtitle.PGS:
+					for _, languageTag := range mediaDirectoryConfig.Extraction.Formats.PGS.Languages {
+						if lang == languageTag {
+							containsRequiredLanguage = true
+						}
+					}
 				}
 
-				subtitleEntry.Segments = append(subtitleEntry.Segments, segmentEntry)
+				if !containsRequiredLanguage {
+					continue
+				}
+
+				score := 0
+
+				for _, rawStreamTitleKeyword := range mediaDirectoryConfig.Extraction.RawStreamTitleKeywords {
+					if strings.Contains(subtitleEntry.Title, rawStreamTitleKeyword) {
+						score++
+					}
+				}
+
+				if score > bestScore {
+					bestScore = score
+					bestSubtitleEntry = &subtitleEntry
+				}
 			}
 
-			videoEntry.Subtitles = append(videoEntry.Subtitles, subtitleEntry)
-
-			db.DB().Save(&videoEntry)
+			if bestSubtitleEntry != nil {
+				actions.ExtractSubtitle(*bestSubtitleEntry)
+			}
 		}
 	}
-
-	return *warnings
 }

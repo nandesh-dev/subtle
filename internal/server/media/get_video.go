@@ -7,14 +7,14 @@ import (
 
 	"connectrpc.com/connect"
 	media_proto "github.com/nandesh-dev/subtle/generated/proto/media"
-	"github.com/nandesh-dev/subtle/pkgs/db"
+	"github.com/nandesh-dev/subtle/pkgs/database"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 )
 
 func (s ServiceHandler) GetVideo(ctx context.Context, req *connect.Request[media_proto.GetVideoRequest]) (*connect.Response[media_proto.GetVideoResponse], error) {
-	var videoEntry db.Video
+	var videoEntry database.Video
 
-	if err := db.DB().Where(&db.Video{ID: int(req.Msg.Id)}).
+	if err := database.Database().Where(&database.Video{ID: int(req.Msg.Id)}).
 		Preload("Subtitles").
 		First(&videoEntry).Error; err != nil {
 		return nil, fmt.Errorf("Error getting video entry: %v", err)
