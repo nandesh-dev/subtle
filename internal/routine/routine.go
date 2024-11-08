@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/nandesh-dev/subtle/internal/routine/extract"
+	"github.com/nandesh-dev/subtle/internal/routine/format"
 	"github.com/nandesh-dev/subtle/internal/routine/media"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/logger"
@@ -27,4 +28,5 @@ func run() {
 
 	media.Run()
 	extract.Run()
+	format.Run()
 }

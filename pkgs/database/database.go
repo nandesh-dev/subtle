@@ -63,7 +63,9 @@ func Database() *gorm.DB {
 }
 
 func Init() error {
-	db, err := gorm.Open(sqlite.Open(config.Config().Database.Path), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.Config().Database.Path), &gorm.Config{
+		FullSaveAssociations: true,
+	})
 	if err != nil {
 		return fmt.Errorf("Error opening database: %v", err)
 	}
