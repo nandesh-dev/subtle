@@ -28,12 +28,12 @@ func Run() {
 			var bestSubtitleEntry *database.Subtitle
 
 			for _, subtitleEntry := range videoEntry.Subtitles {
-				logger.Logger().Log("Media Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
+				logger.Logger().Log("Extract Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
 				if subtitleEntry.IsExtracted {
 					break
 				}
 
-				logger.Logger().Log("Media Routine", fmt.Sprintf("Extracting subtitle: %v", subtitleEntry.Title))
+				logger.Logger().Log("Extract Routine", fmt.Sprintf("Extracting subtitle: %v", subtitleEntry.Title))
 
 				format, err := subtitle.ParseFormat(subtitleEntry.ImportFormat)
 				if err != nil {
