@@ -16,8 +16,16 @@ import (
 	"golang.org/x/text/language"
 )
 
-func ExtractSubtitle(subtitleEntry database.Subtitle) {
-	logger.Logger().Log("Extract Subtitle Action", fmt.Sprintf("Extracting Subtitle; ID: %v", subtitleEntry.ID))
+func ExtractSubtitle(id int) {
+	logger.Logger().Log("Extract Subtitle Action", fmt.Sprintf("Extracting Subtitle; ID: %v", id))
+
+	subtitleEntry := database.Subtitle{
+		ID: id,
+	}
+	if err := database.Database().Where(subtitleEntry).Preload("Segments").Find(&subtitleEntry).Error; err != nil {
+		logger.Logger().Error("Extract Subtitle Action", fmt.Errorf("Error getting subtitle from database: %v", err))
+		return
+	}
 
 	if subtitleEntry.IsProcessing {
 		logger.Logger().Error("Extract Subtitle Action", fmt.Errorf("Subtitle is already being processed: ID = %v", subtitleEntry.ID))
@@ -77,7 +85,7 @@ func ExtractSubtitle(subtitleEntry database.Subtitle) {
 			return
 		}
 
-		sub = s
+		sub = *s
 	case subtitle.PGS:
 		s, _, err := pgs.ExtractFromRawStream(*rawStream)
 		if err != nil {
@@ -85,14 +93,17 @@ func ExtractSubtitle(subtitleEntry database.Subtitle) {
 			return
 		}
 
-		sub = s
+		sub = *s
 
 	default:
 		logger.Logger().Error("Extract Subtitle Action", fmt.Errorf("Unsupported subtitle format: %v", subtitleEntry.ImportFormat))
 		return
 	}
 
-	subtitleEntry.Segments = make([]database.Segment, 0)
+	if err := database.Database().Where(subtitleEntry).Preload("Segments").First(&subtitleEntry).Error; err != nil {
+		logger.Logger().Error("Extract Subtitle Action", fmt.Errorf("Error getting segments of subtitle from database: %v", err))
+		return
+	}
 
 	switch sub := sub.(type) {
 	case subtitle.TextSubtitle:
@@ -128,7 +139,7 @@ func ExtractSubtitle(subtitleEntry database.Subtitle) {
 
 	subtitleEntry.IsExtracted = true
 
-	if err := database.Database().Save(subtitleEntry).Error; err != nil {
+	if err := database.Database().Save(&subtitleEntry).Error; err != nil {
 		logger.Logger().Error("Extract Subtitle Action", fmt.Errorf("Error saving subtitle to database: %v", err))
 	}
 }

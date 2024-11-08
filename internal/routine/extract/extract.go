@@ -83,7 +83,7 @@ func Run() {
 			}
 
 			if bestSubtitleEntry != nil {
-				actions.ExtractSubtitle(*bestSubtitleEntry)
+				actions.ExtractSubtitle(bestSubtitleEntry.ID)
 			}
 		}
 	}
