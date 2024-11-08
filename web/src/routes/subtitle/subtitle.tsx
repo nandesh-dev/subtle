@@ -145,8 +145,6 @@ function Segment({ id }: SegmentProp) {
             Number(data.end?.nanos || 0) / 1000
     )
 
-    console.log(data.original)
-
     return (
         <>
             <Small>
