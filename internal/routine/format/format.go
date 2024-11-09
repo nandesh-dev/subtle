@@ -28,6 +28,8 @@ func Run() {
 
 		for _, videoEntry := range videoEntries {
 			for _, subtitleEntry := range videoEntry.Subtitles {
+				logger.Logger().Log("Format Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
+
 				if subtitleEntry.IsProcessing {
 					continue
 				}
