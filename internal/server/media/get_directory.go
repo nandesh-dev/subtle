@@ -13,6 +13,7 @@ import (
 )
 
 func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[media.GetDirectoryRequest]) (*connect.Response[media.GetDirectoryResponse], error) {
+
 	res := media.GetDirectoryResponse{
 		Path:          req.Msg.Path,
 		Name:          filepath.Base(req.Msg.Path),
@@ -28,7 +29,7 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 		return connect.NewResponse(&res), nil
 	}
 
-	dir, _, _ := filemanager.ReadDirectory(req.Msg.Path)
+	dir, _, _ := filemanager.ReadDirectory(req.Msg.Path, false)
 
 	for _, child := range dir.Children() {
 		res.ChildrenPaths = append(res.ChildrenPaths, child.Path())

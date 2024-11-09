@@ -8,7 +8,7 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/warning"
 )
 
-func ReadDirectory(path string) (*Directory, warning.WarningList, error) {
+func ReadDirectory(path string, deep bool) (*Directory, warning.WarningList, error) {
 	warnings := warning.NewWarningList()
 	files, err := os.ReadDir(path)
 	if err != nil {
@@ -25,14 +25,20 @@ func ReadDirectory(path string) (*Directory, warning.WarningList, error) {
 	for _, entry := range files {
 		entrypath := filepath.Join(path, entry.Name())
 		if entry.IsDir() {
-			child, w, err := ReadDirectory(entrypath)
-			warnings.Append(w)
+			if deep {
+				child, w, err := ReadDirectory(entrypath, true)
+				warnings.Append(w)
 
-			if err != nil {
-				return nil, *warnings, err
+				if err != nil {
+					return nil, *warnings, err
+				}
+
+				directory.children = append(directory.children, *child)
+			} else {
+				directory.children = append(directory.children, Directory{
+					path: entrypath,
+				})
 			}
-
-			directory.children = append(directory.children, *child)
 		}
 
 		if IsSubtitleFile(entrypath) {

@@ -19,7 +19,7 @@ func Run() {
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		logger.Logger().Log("Media Routine", fmt.Sprintf("Reading watch directory: %v", mediaDirectoryConfig.Path))
 
-		watchDirectory, _, err := filemanager.ReadDirectory(mediaDirectoryConfig.Path)
+		watchDirectory, _, err := filemanager.ReadDirectory(mediaDirectoryConfig.Path, true)
 		if err != nil {
 			logger.Logger().Error("Media Routine", fmt.Errorf("Error reading watch directory: %v", err))
 			return
