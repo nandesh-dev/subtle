@@ -16,6 +16,10 @@ func Run() {
 	defer logger.Logger().Log("Format Routine", "Format routine complete")
 
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
+		if !mediaDirectoryConfig.Formating.Enable {
+			continue
+		}
+
 		var videoEntries []database.Video
 		database.Database().
 			Where("directory_path LIKE ?", fmt.Sprintf("%s%%", mediaDirectoryConfig.Path)).

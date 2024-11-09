@@ -19,6 +19,7 @@ type MediaDirectory struct {
 }
 
 type Extraction struct {
+	Enable                 bool
 	RawStreamTitleKeywords []string `yaml:"raw_stream_title_keywords"`
 	Formats                Formats
 }
@@ -39,6 +40,7 @@ type PGS struct {
 }
 
 type Formating struct {
+	Enable             bool
 	TextBasedSubtitle  TextBasedSubtitle  `yaml:"text_based_subtitle"`
 	ImageBasedSubtitle ImageBasedSubtitle `yaml:"image_based_subtitle"`
 }

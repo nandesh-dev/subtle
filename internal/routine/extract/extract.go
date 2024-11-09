@@ -17,6 +17,10 @@ func Run() {
 	defer logger.Logger().Log("Extract Routine", "Extract routine complete")
 
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
+		if !mediaDirectoryConfig.Extraction.Enable {
+			continue
+		}
+
 		var videoEntries []database.Video
 		database.Database().
 			Where("directory_path LIKE ?", fmt.Sprintf("%s%%", mediaDirectoryConfig.Path)).
