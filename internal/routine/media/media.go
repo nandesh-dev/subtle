@@ -2,6 +2,7 @@ package media
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/database"
@@ -80,6 +81,22 @@ func Run() {
 							subtitleEntry.Title = fmt.Sprintf("%v#%v", display.Self.Name(rawStream.Language()), rawStream.Index())
 						}
 						videoEntry.Subtitles = append(videoEntry.Subtitles, subtitleEntry)
+					}
+				}
+
+				for i, subtitleEntry := range videoEntry.Subtitles {
+					if subtitleEntry.IsExported {
+						if _, err := os.Stat(subtitleEntry.ExportPath); err != nil {
+							if os.IsNotExist(err) {
+								videoEntry.Subtitles[i].IsExported = false
+								videoEntry.Subtitles[i].ExportPath = ""
+								videoEntry.Subtitles[i].ExportFormat = ""
+
+								logger.Logger().Log("Media Routine", fmt.Sprintf("Subtitle missing exported file, reverted to unexported state: %v", subtitleEntry.Title))
+							} else {
+								logger.Logger().Error("Media Routine", fmt.Errorf("Error checking if subtitle file exist: %v", err))
+							}
+						}
 					}
 				}
 
