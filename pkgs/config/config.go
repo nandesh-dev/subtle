@@ -131,6 +131,7 @@ func Init(basepath string) (e error) {
 				{
 					Path: "/media",
 					Extraction: Extraction{
+						Enable:                 false,
 						RawStreamTitleKeywords: []string{"Full", "Dialogue"},
 						Formats: Formats{
 							ASS: ASS{
@@ -144,6 +145,7 @@ func Init(basepath string) (e error) {
 						},
 					},
 					Formating: Formating{
+						Enable: false,
 						TextBasedSubtitle: TextBasedSubtitle{
 							CharactorMappings: []CharactorMapping{},
 						},
@@ -162,6 +164,7 @@ func Init(basepath string) (e error) {
 						},
 					},
 					Exporting: Exporting{
+						Enable: false,
 						Format: "srt",
 					},
 				},
