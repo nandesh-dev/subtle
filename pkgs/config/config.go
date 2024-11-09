@@ -62,6 +62,7 @@ type Mapping struct {
 }
 
 type Exporting struct {
+	Enable bool
 	Format string
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/nandesh-dev/subtle/internal/routine/export"
 	"github.com/nandesh-dev/subtle/internal/routine/extract"
 	"github.com/nandesh-dev/subtle/internal/routine/format"
 	"github.com/nandesh-dev/subtle/internal/routine/media"
@@ -29,4 +30,5 @@ func run() {
 	media.Run()
 	extract.Run()
 	format.Run()
+	export.Run()
 }

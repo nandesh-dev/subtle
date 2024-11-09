@@ -32,6 +32,7 @@ type Subtitle struct {
 
 	IsExtracted bool
 	IsFormated  bool
+	IsExported  bool
 
 	ImportIsExternal       bool
 	ImportFormat           string
