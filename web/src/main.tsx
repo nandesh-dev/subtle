@@ -41,7 +41,7 @@ const router = createBrowserRouter([
 ])
 
 const transport = createGrpcWebTransport({
-    baseUrl: 'http://localhost:3000',
+    baseUrl: `${window.location.origin}`,
 })
 
 const proto: ProtoContent = {

@@ -35,7 +35,7 @@ RUN make
 RUN make install
 
 
-# Subtle static build
+# Subtle backend static build
 WORKDIR /build/subtle
 COPY . .
 
@@ -50,6 +50,16 @@ RUN buf generate
 
 RUN CGO_ENABLED=1 GOOS=linux \
     go build  -a -tags netgo -ldflags '-extldflags "-static -L/usr/local/lib -ltesseract -lleptonica -lpng -lz"' ./cmd/subtle
+
+# Subtle frontend build
+WORKDIR /build/subtle/web
+
+RUN wget -qO- https://get.pnpm.io/install.sh | bash -
+RUN . /root/.bashrc && \
+  pnpm env use --global lts && \
+  pnpm install && \
+  npx buf generate && \
+  pnpm run build
 
 
 # Empty volume mount points
@@ -81,6 +91,7 @@ USER subtle:docker
 
 # Binaries
 COPY --from=build-stage /build/subtle/subtle /subtle
+COPY --from=build-stage /build/subtle/web/dist /public
 
 COPY --from=build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=build-stage /build/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe

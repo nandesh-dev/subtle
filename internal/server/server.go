@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 
 	connectcors "connectrpc.com/cors"
 	"connectrpc.com/grpcreflect"
@@ -28,19 +29,35 @@ func New() *server {
 }
 
 func (s *server) Listen() error {
-	mux := http.NewServeMux()
+	apiMux := http.NewServeMux()
 
 	path, handler := mediaconnect.NewMediaServiceHandler(media.ServiceHandler{})
-	mux.Handle(path, handler)
+	apiMux.Handle(path, handler)
 
 	path, handler = subtitleconnect.NewSubtitleServiceHandler(subtitle.ServiceHandler{})
-	mux.Handle(path, handler)
+	apiMux.Handle(path, handler)
 
 	if config.Config().Server.Web.EnableGRPCReflection {
 		path, handler = grpcreflect.NewHandlerV1Alpha(grpcreflect.NewStaticReflector(
 			mediaconnect.MediaServiceName))
-		mux.Handle(path, handler)
+		apiMux.Handle(path, handler)
 	}
+
+	fileServer := http.FileServer(http.Dir(config.Config().Web.ServeDirectory))
+	serverHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, pattern := apiMux.Handler(r)
+		if pattern != "" {
+			apiMux.ServeHTTP(w, r)
+			return
+		}
+
+		if filepath.Ext(r.URL.Path) == "" || filepath.Ext(r.URL.Path) == ".html" {
+			http.ServeFile(w, r, filepath.Join(config.Config().Web.ServeDirectory, "index.html"))
+			return
+		}
+
+		fileServer.ServeHTTP(w, r)
+	})
 
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins: config.Config().Server.Web.COROrigins,
@@ -50,8 +67,8 @@ func (s *server) Listen() error {
 	})
 
 	http.ListenAndServe(
-		fmt.Sprintf("localhost:%v", config.Config().Server.Web.Port),
-		h2c.NewHandler(corsMiddleware.Handler(mux), &http2.Server{}),
+		fmt.Sprintf("0.0.0.0:%v", config.Config().Server.Web.Port),
+		h2c.NewHandler(corsMiddleware.Handler(serverHandler), &http2.Server{}),
 	)
 
 	return nil

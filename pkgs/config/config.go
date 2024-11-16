@@ -79,6 +79,7 @@ type Web struct {
 	Port                 int
 	COROrigins           []string `yaml:"cor_origins"`
 	EnableGRPCReflection bool     `yaml:"enable_grpc_reflection"`
+	ServeDirectory       string   `yaml:"serve_directory"`
 }
 
 type Database struct {
@@ -116,6 +117,7 @@ func Init(basepath string) (e error) {
 					Port:                 3000,
 					COROrigins:           make([]string, 0),
 					EnableGRPCReflection: false,
+					ServeDirectory:       "/public",
 				},
 				Database: Database{
 					Path: filepath.Join(basepath, "database.db"),
