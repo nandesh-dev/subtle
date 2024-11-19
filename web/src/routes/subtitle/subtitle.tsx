@@ -139,8 +139,6 @@ function Segment({ id }: SegmentProp) {
         },
     })
 
-    console.log(updateTextMutation)
-
     if (isLoading) {
         if (isIntersecting) loadData()
         return (
@@ -152,6 +150,8 @@ function Segment({ id }: SegmentProp) {
             </div>
         )
     }
+
+    console.log(data)
 
     const start = new Date(
         Number(data.start?.seconds || 0) * 1000 +
@@ -180,32 +180,38 @@ function Segment({ id }: SegmentProp) {
                         </p>
                     </div>
                     <div className="flex h-full flex-col">
-                        <div className="relative">
-                            {!data.original?.text ? (
+                        <div className="relative flex flex-col items-center p-md">
+                            {data.original?.text ? (
                                 <div className="flex items-center justify-center p-sm pt-md">
                                     <p className="text-center text-gray-830">
                                         {data.original?.text}
                                     </p>
                                 </div>
                             ) : (
-                                <img
-                                    src={`data:image/png;base64,${data.original?.image}`}
-                                />
+                                data.original?.image && (
+                                    <img
+                                        src={URL.createObjectURL(
+                                            new Blob([data.original?.image], {
+                                                type: 'image/png',
+                                            })
+                                        )}
+                                    />
+                                )
                             )}
                             <h5 className="absolute left-0 top-0 text-xs text-gray-520">
                                 Original
                             </h5>
                         </div>
                         <div className="relative">
-                            <div className="flex items-center justify-center p-md pb-sm">
-                                <input
-                                    className="text-center text-gray-830"
+                            <div className="flex flex-col items-center justify-center p-md pb-sm">
+                                <textarea
+                                    className="w-full text-center text-gray-830"
                                     onChange={(e) =>
                                         updateTextMutation.mutate(
                                             e.target.value
                                         )
                                     }
-                                    defaultValue={data.original?.text}
+                                    defaultValue={data.new?.text}
                                 />
                             </div>
                             <h5 className="absolute left-0 top-0 text-xs text-gray-520">
@@ -243,8 +249,8 @@ function Segment({ id }: SegmentProp) {
                         </div>
                         <div className="relative">
                             <div className="flex h-full items-center justify-center p-md pb-sm">
-                                <input
-                                    className="text-center text-gray-830"
+                                <textarea
+                                    className="w-full text-center text-gray-830"
                                     onChange={(e) =>
                                         updateTextMutation.mutate(
                                             e.target.value
