@@ -22,7 +22,19 @@ func (s ServiceHandler) UpdateSegment(ctx context.Context, req *connect.Request[
 	segmentEntry.Text = req.Msg.New.Text
 
 	if err := database.Database().Save(&segmentEntry).Error; err != nil {
-		return nil, fmt.Errorf("Error updating segment: %v", err)
+		return nil, fmt.Errorf("Error getting segment: %v", err)
+	}
+
+	var subtitleEntry database.Subtitle
+
+	if err := database.Database().Where(database.Subtitle{ID: segmentEntry.SubtitleID}).Find(&subtitleEntry).Error; err != nil {
+		return nil, fmt.Errorf("Error getting subtitle: %v", err)
+	}
+
+	if !subtitleEntry.IsFormated {
+		if err := database.Database().Save(subtitleEntry); err != nil {
+			return nil, fmt.Errorf("Error saving subtitle: %v", err)
+		}
 	}
 
 	res := subtitle_proto.UpdateSegmentResponse{}
