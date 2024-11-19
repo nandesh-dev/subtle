@@ -1,12 +1,13 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { SubtitleIcon } from '../../../assets'
+import { CrossIcon, ProcessingIcon, SubtitleIcon } from '../../../assets'
 import { useProto } from '../../context/proto'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import {
     GetSegmentRequest,
     GetSegmentResponse,
     GetSubtitleRequest,
+    UpdateSegmentRequest,
 } from '../../../gen/proto/subtitle/subtitle_pb'
 import { Large, Small } from '../../utils/react_responsive'
 import { useIntersectionObserver } from '../../utils/useIntersectionObserver'
@@ -123,6 +124,23 @@ function Segment({ id }: SegmentProp) {
             .then(setData)
     }
 
+    const updateTextMutation = useMutation({
+        mutationFn: async (newText: string) => {
+            await SubtitleServiceClient?.updateSegment(
+                new UpdateSegmentRequest({
+                    id,
+                    start: data?.start,
+                    end: data?.end,
+                    new: {
+                        text: newText,
+                    },
+                })
+            )
+        },
+    })
+
+    console.log(updateTextMutation)
+
     if (isLoading) {
         if (isIntersecting) loadData()
         return (
@@ -180,9 +198,15 @@ function Segment({ id }: SegmentProp) {
                         </div>
                         <div className="relative">
                             <div className="flex items-center justify-center p-md pb-sm">
-                                <p className="text-center text-gray-830">
-                                    {data.original?.text}
-                                </p>
+                                <input
+                                    className="text-center text-gray-830"
+                                    onChange={(e) =>
+                                        updateTextMutation.mutate(
+                                            e.target.value
+                                        )
+                                    }
+                                    defaultValue={data.original?.text}
+                                />
                             </div>
                             <h5 className="absolute left-0 top-0 text-xs text-gray-520">
                                 New
@@ -192,7 +216,7 @@ function Segment({ id }: SegmentProp) {
                 </div>
             </Small>
             <Large>
-                <div className="flex h-fit min-h-[8rem] flex-row rounded-sm bg-gray-80 p-sm">
+                <div className="flex h-fit min-h-[8rem] flex-row gap-sm rounded-sm bg-gray-80 p-sm">
                     <div className="grid w-full grid-cols-2">
                         <div className="relative">
                             <div className="flex h-full items-center justify-center p-sm pt-md">
@@ -219,13 +243,25 @@ function Segment({ id }: SegmentProp) {
                         </div>
                         <div className="relative">
                             <div className="flex h-full items-center justify-center p-md pb-sm">
-                                <p className="text-center text-gray-830">
-                                    {data.new?.text}
-                                </p>
+                                <input
+                                    className="text-center text-gray-830"
+                                    onChange={(e) =>
+                                        updateTextMutation.mutate(
+                                            e.target.value
+                                        )
+                                    }
+                                    defaultValue={data.new?.text}
+                                />
                             </div>
                             <h5 className="absolute left-0 top-0 text-xs text-gray-520">
                                 New
                             </h5>
+                            {updateTextMutation.isPending && (
+                                <ProcessingIcon className="absolute right-0 top-0 fill-gray-520" />
+                            )}
+                            {updateTextMutation.isError && (
+                                <CrossIcon className="absolute right-0 top-0 fill-gray-520" />
+                            )}
                         </div>
                     </div>
                     <div className="flex flex-col justify-between">

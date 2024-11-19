@@ -21,7 +21,7 @@ func (s ServiceHandler) UpdateSegment(ctx context.Context, req *connect.Request[
 	segmentEntry.EndTime = req.Msg.End.AsDuration()
 	segmentEntry.Text = req.Msg.New.Text
 
-	if err := database.Database().Save(&segmentEntry); err != nil {
+	if err := database.Database().Save(&segmentEntry).Error; err != nil {
 		return nil, fmt.Errorf("Error updating segment: %v", err)
 	}
 
