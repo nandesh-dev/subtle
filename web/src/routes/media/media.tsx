@@ -67,7 +67,7 @@ export function Media() {
                         <SearchBar />
                     </section>
                     <section className="grid w-full grid-flow-row gap-sm overflow-y-auto">
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-sm">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-sm">
                             <Folders />
                         </div>
                         {(data?.videoIds.length || 0) > 0 && (
