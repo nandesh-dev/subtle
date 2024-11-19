@@ -9,6 +9,7 @@ option go_package = "github.com/nandesh-dev/subtle/generated/proto/subtitle";
 service SubtitleService {
   rpc GetSubtitle(GetSubtitleRequest) returns (GetSubtitleResponse);
   rpc GetSegment(GetSegmentRequest) returns (GetSegmentResponse);
+  rpc UpdateSegment(UpdateSegmentRequest) returns (UpdateSegmentResponse);
 }
 
 message GetSubtitleRequest {
@@ -39,6 +40,16 @@ message GetSegmentResponse {
   OriginalSegment original = 3;
   NewSegment new = 4;
 }
+
+message UpdateSegmentRequest {
+  int32 id = 1;
+  google.protobuf.Duration start = 2;
+  google.protobuf.Duration end = 3;
+
+  NewSegment new = 4;
+}
+
+message UpdateSegmentResponse {}
 
 message OriginalSegment {
   optional string text = 3;

@@ -114,7 +114,6 @@ func ExtractFromRawStream(rawStream filemanager.RawStream) (*subtitle.ImageSubti
 		for _, image := range images {
 			endTimestamp := previousStartTimestamp
 			if previousStartTimestamp.Nanoseconds() < displaySet.Header.PTS.Nanoseconds() {
-				fmt.Println("ah")
 				endTimestamp = displaySet.Header.PTS + time.Second*15
 			}
 
