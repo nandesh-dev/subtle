@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/nandesh-dev/subtle/internal/actions"
 	"github.com/nandesh-dev/subtle/internal/routine/export"
 	"github.com/nandesh-dev/subtle/internal/routine/extract"
 	"github.com/nandesh-dev/subtle/internal/routine/format"
@@ -12,7 +13,11 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/logger"
 )
 
-func Start() {
+func Start() error {
+	if err := actions.CleanupDatebase(); err != nil {
+		return fmt.Errorf("Error running cleaup database action: %v", err)
+	}
+
 	ticker := time.NewTicker(config.Config().Routine.Delay)
 	defer ticker.Stop()
 
