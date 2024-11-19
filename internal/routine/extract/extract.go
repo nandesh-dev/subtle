@@ -55,12 +55,20 @@ func Run() {
 
 				switch format {
 				case subtitle.ASS:
+					if !mediaDirectoryConfig.Extraction.Formats.ASS.Enable {
+						continue
+					}
+
 					for _, languageTag := range mediaDirectoryConfig.Extraction.Formats.ASS.Languages {
 						if lang == languageTag {
 							containsRequiredLanguage = true
 						}
 					}
 				case subtitle.PGS:
+					if !mediaDirectoryConfig.Extraction.Formats.PGS.Enable {
+						continue
+					}
+
 					for _, languageTag := range mediaDirectoryConfig.Extraction.Formats.PGS.Languages {
 						if lang == languageTag {
 							containsRequiredLanguage = true
