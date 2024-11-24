@@ -31,9 +31,9 @@ export function Root() {
                         <section className="h-full w-full px-sm pt-sm">
                             <Outlet />
                         </section>
-                        <section className="absolute bottom-0 w-full p-sm">
-                            <nav className="w-full rounded-sm bg-gray-120 px-md py-sm">
-                                <ul className="flex flex-row justify-between">
+                        <section className="absolute bottom-0 left-0 p-sm">
+                            <nav className="rounded-sm bg-gray-120 px-md py-sm">
+                                <ul className="flex flex-row items-center gap-md">
                                     <li>
                                         <Link
                                             to={'/home'}
