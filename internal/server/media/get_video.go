@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"slices"
 
 	"connectrpc.com/connect"
 	media_proto "github.com/nandesh-dev/subtle/generated/proto/media"
@@ -23,15 +24,27 @@ func (s ServiceHandler) GetVideo(ctx context.Context, req *connect.Request[media
 	video := filemanager.NewVideoFile(filepath.Join(videoEntry.DirectoryPath, videoEntry.Filename))
 
 	res := media_proto.GetVideoResponse{
-		Id:            req.Msg.Id,
-		DirectoryPath: video.DirectoryPath(),
-		BaseName:      video.Basename(),
-		Extension:     video.Extension(),
-		SubtitleIds:   make([]int32, 0),
+		Id:                 req.Msg.Id,
+		DirectoryPath:      video.DirectoryPath(),
+		BaseName:           video.Basename(),
+		Extension:          video.Extension(),
+		SubtitleIds:        make([]int32, 0),
+		IsProcessing:       false,
+		ExtractedLanguages: make([]string, 0),
 	}
 
 	for _, subtitleEntry := range videoEntry.Subtitles {
 		res.SubtitleIds = append(res.SubtitleIds, int32(subtitleEntry.ID))
+
+		if subtitleEntry.IsProcessing {
+			res.IsProcessing = true
+		}
+
+		if subtitleEntry.IsExported {
+			if !slices.Contains(res.ExtractedLanguages, subtitleEntry.Language) {
+				res.ExtractedLanguages = append(res.ExtractedLanguages, subtitleEntry.Language)
+			}
+		}
 	}
 
 	return connect.NewResponse(&res), nil

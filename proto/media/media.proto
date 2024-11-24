@@ -31,5 +31,9 @@ message GetVideoResponse {
   string directory_path = 2;
   string base_name = 3;
   string extension = 4;
+
   repeated int32 subtitle_ids = 5;
+
+  repeated string extracted_languages = 6;
+  bool is_processing = 7;
 }

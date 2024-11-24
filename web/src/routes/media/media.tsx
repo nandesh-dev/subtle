@@ -1,13 +1,17 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { FolderIcon, SearchIcon } from '../../../assets'
+import {
+    FolderIcon,
+    SearchIcon,
+    ProcessingIcon,
+    TickIcon,
+} from '../../../assets'
 import { Large, Small } from '../../utils/react_responsive'
 import { useProto } from '../../context/proto'
 import {
     GetDirectoryRequest,
     GetVideoRequest,
 } from '../../../gen/proto/media/media_pb'
-import { useQueries, useQuery } from '@tanstack/react-query'
-import { GetSubtitleRequest } from '../../../gen/proto/subtitle/subtitle_pb'
+import { useQuery } from '@tanstack/react-query'
 
 export function Media() {
     const { MediaServiceClient } = useProto()
@@ -152,9 +156,9 @@ function Video({ id }: FileProp) {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:grid-cols-2 lg:items-center">
+            <div className="lg:grid-col-[2fr_1fr] flex flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:items-center">
                 <div className="h-md animate-pulse rounded-sm bg-gray-190" />
-                <div className="flex grid-cols-3 flex-row justify-items-end gap-xs lg:grid">
+                <div className="flex grid-cols-3 flex-row items-center justify-items-end gap-sm lg:grid">
                     <div className="h-sm w-[4rem] animate-pulse rounded-sm bg-gray-120" />
                     <div className="h-sm w-[8rem] animate-pulse rounded-sm bg-gray-120" />
                     <div className="h-sm w-[2rem] animate-pulse rounded-sm bg-gray-120" />
@@ -170,14 +174,18 @@ function Video({ id }: FileProp) {
 
     return (
         <button
-            className="flex grid-cols-2 flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:items-center"
+            className="flex grid-cols-[2fr_1fr] flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:items-center"
             onClick={onClick}
         >
             <p className="text-start text-sm text-gray-830">
                 {video?.baseName}
             </p>
-            <div className="flex grid-cols-3 flex-row justify-items-end gap-xs lg:grid">
+            <div className="flex grid-cols-3 flex-row items-center justify-items-end gap-sm lg:grid">
                 <p className="text-sm text-gray-520">{video?.extension}</p>
+                <p className="text-sm text-gray-520">
+                    {video?.extractedLanguages.join(', ')}
+                </p>
+                {video?.isProcessing ? <ProcessingIcon /> : <TickIcon />}
             </div>
         </button>
     )
