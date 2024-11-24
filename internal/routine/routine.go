@@ -21,6 +21,8 @@ func Start() error {
 	ticker := time.NewTicker(config.Config().Routine.Delay)
 	defer ticker.Stop()
 
+	run()
+
 	for {
 		select {
 		case <-ticker.C:
