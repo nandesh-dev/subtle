@@ -9,7 +9,6 @@ import {
     GetSubtitleRequest,
     UpdateSegmentRequest,
 } from '../../../gen/proto/subtitle/subtitle_pb'
-import { Large, Small } from '../../utils/react_responsive'
 import { useIntersectionObserver } from '../../utils/useIntersectionObserver'
 import { GetVideoRequest } from '../../../gen/proto/media/media_pb'
 
