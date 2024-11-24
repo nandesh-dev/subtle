@@ -16,6 +16,30 @@ func Run() {
 	logger.Logger().Log("Media Routine", "Running media routine")
 	defer logger.Logger().Log("Media Routine", "Media routine complete")
 
+	var routineEntry database.Routine
+	if err := database.Database().Where(database.Routine{Name: "Media"}).FirstOrCreate(&routineEntry, database.Routine{Name: "Media", Description: "Scans the media directory for new video files and extract raw subtitle streams from it.", IsRunning: false}).Error; err != nil {
+		logger.Logger().Error("Media Routine", fmt.Errorf("Error getting routine entry from database: %v", err))
+		return
+	}
+
+	if routineEntry.IsRunning {
+		logger.Logger().Error("Media Routine", fmt.Errorf("Media routine is already running"))
+		return
+	}
+
+	routineEntry.IsRunning = true
+	if err := database.Database().Save(routineEntry).Error; err != nil {
+		logger.Logger().Error("Media Routine", fmt.Errorf("Error updating routine status in database: %v", err))
+		return
+	}
+
+	defer func() {
+		routineEntry.IsRunning = false
+		if err := database.Database().Save(routineEntry).Error; err != nil {
+			logger.Logger().Error("Media Routine", fmt.Errorf("Error updating routine status in database: %v", err))
+		}
+	}()
+
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		logger.Logger().Log("Media Routine", fmt.Sprintf("Reading watch directory: %v", mediaDirectoryConfig.Path))
 

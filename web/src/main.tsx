@@ -14,6 +14,8 @@ import { createClient } from '@connectrpc/connect'
 import { MediaService } from '../gen/proto/media/media_connect'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SubtitleService } from '../gen/proto/subtitle/subtitle_connect'
+import { Routines } from './routes/routines/routines'
+import { RoutineService } from '../gen/proto/routine/routine_connect'
 
 const router = createBrowserRouter([
     {
@@ -36,6 +38,10 @@ const router = createBrowserRouter([
                 path: 'subtitle',
                 element: <Subtitle />,
             },
+            {
+                path: 'routines',
+                element: <Routines />,
+            },
         ],
     },
 ])
@@ -47,6 +53,7 @@ const transport = createGrpcWebTransport({
 const proto: ProtoContent = {
     MediaServiceClient: createClient(MediaService, transport),
     SubtitleServiceClient: createClient(SubtitleService, transport),
+    RoutineServiceClient: createClient(RoutineService, transport),
 }
 
 const query = new QueryClient()

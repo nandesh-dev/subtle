@@ -9,8 +9,10 @@ import (
 	connectcors "connectrpc.com/cors"
 	"connectrpc.com/grpcreflect"
 	"github.com/nandesh-dev/subtle/generated/proto/media/mediaconnect"
+	"github.com/nandesh-dev/subtle/generated/proto/routine/routineconnect"
 	"github.com/nandesh-dev/subtle/generated/proto/subtitle/subtitleconnect"
 	"github.com/nandesh-dev/subtle/internal/server/media"
+	"github.com/nandesh-dev/subtle/internal/server/routine"
 	"github.com/nandesh-dev/subtle/internal/server/subtitle"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/rs/cors"
@@ -35,6 +37,9 @@ func (s *server) Listen() error {
 	apiMux.Handle(path, handler)
 
 	path, handler = subtitleconnect.NewSubtitleServiceHandler(subtitle.ServiceHandler{})
+	apiMux.Handle(path, handler)
+
+	path, handler = routineconnect.NewRoutineServiceHandler(routine.ServiceHandler{})
 	apiMux.Handle(path, handler)
 
 	if config.Config().Server.Web.EnableGRPCReflection {

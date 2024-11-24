@@ -9,6 +9,20 @@ import (
 )
 
 func CleanupDatebase() error {
+	var routineEntries []database.Routine
+	if err := database.Database().Find(&routineEntries).Error; err != nil {
+		return fmt.Errorf("Error getting routine entries from database: %v", err)
+	}
+
+	for _, routineEntry := range routineEntries {
+		if routineEntry.IsRunning {
+			routineEntry.IsRunning = false
+			if err := database.Database().Save(routineEntry).Error; err != nil {
+				return fmt.Errorf("Error updating routine status in database: %v", err)
+			}
+		}
+	}
+
 	var subtitleEntries []database.Subtitle
 	database.Database().
 		Where(database.Subtitle{IsProcessing: true}).

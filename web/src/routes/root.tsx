@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
+    ClockIcon,
     CrossIcon,
     FileIcon,
     HomeIcon,
@@ -23,6 +24,27 @@ export function Root() {
         },
     }
 
+    const navigations = [
+        {
+            name: 'Home',
+            link: '/home',
+            icon: HomeIcon,
+            ariaLabel: 'Switch to home page',
+        },
+        {
+            name: 'Media',
+            link: '/media',
+            icon: FileIcon,
+            ariaLabel: 'Switch to media page',
+        },
+        {
+            name: 'Routines',
+            link: '/routines',
+            icon: ClockIcon,
+            ariaLabel: 'Switch to routines page',
+        },
+    ]
+
     return (
         <>
             <PopoverContext.Provider value={popoverValue}>
@@ -34,38 +56,28 @@ export function Root() {
                         <section className="absolute bottom-0 left-0 p-sm">
                             <nav className="rounded-sm bg-gray-120 px-md py-sm">
                                 <ul className="flex flex-row items-center gap-md">
-                                    <li>
-                                        <Link
-                                            to={'/home'}
-                                            aria-label="Switch to home page"
-                                        >
-                                            <HomeIcon
-                                                className={
-                                                    location.pathname.startsWith(
-                                                        '/home'
-                                                    )
-                                                        ? 'fill-primary'
-                                                        : 'fill-gray-830'
-                                                }
-                                            />
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            to={'/media'}
-                                            aria-label="Switch to media page"
-                                        >
-                                            <FileIcon
-                                                className={
-                                                    location.pathname.startsWith(
-                                                        '/media'
-                                                    )
-                                                        ? 'fill-primary'
-                                                        : 'fill-gray-830'
-                                                }
-                                            />
-                                        </Link>
-                                    </li>
+                                    {navigations.map(
+                                        ({ link, icon: Icon, ariaLabel }) => {
+                                            return (
+                                                <li key={link}>
+                                                    <Link
+                                                        to={link}
+                                                        aria-label={ariaLabel}
+                                                    >
+                                                        <Icon
+                                                            className={
+                                                                location.pathname.startsWith(
+                                                                    link
+                                                                )
+                                                                    ? 'fill-primary'
+                                                                    : 'fill-gray-830'
+                                                            }
+                                                        />
+                                                    </Link>
+                                                </li>
+                                            )
+                                        }
+                                    )}
                                 </ul>
                             </nav>
                         </section>
@@ -80,38 +92,28 @@ export function Root() {
                             </div>
                             <nav>
                                 <ul className="flex flex-col items-center justify-between gap-sm">
-                                    <li>
-                                        <Link
-                                            to={'/home'}
-                                            aria-label="Switch to home page"
-                                        >
-                                            <HomeIcon
-                                                className={
-                                                    location.pathname.startsWith(
-                                                        '/home'
-                                                    )
-                                                        ? 'fill-primary'
-                                                        : 'fill-gray-830'
-                                                }
-                                            />
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            to={'/media'}
-                                            aria-label="Switch to media page"
-                                        >
-                                            <FileIcon
-                                                className={
-                                                    location.pathname.startsWith(
-                                                        '/media'
-                                                    )
-                                                        ? 'fill-primary'
-                                                        : 'fill-gray-830'
-                                                }
-                                            />
-                                        </Link>
-                                    </li>
+                                    {navigations.map(
+                                        ({ link, icon: Icon, ariaLabel }) => {
+                                            return (
+                                                <li key={link}>
+                                                    <Link
+                                                        to={link}
+                                                        aria-label={ariaLabel}
+                                                    >
+                                                        <Icon
+                                                            className={
+                                                                location.pathname.startsWith(
+                                                                    link
+                                                                )
+                                                                    ? 'fill-primary'
+                                                                    : 'fill-gray-830'
+                                                            }
+                                                        />
+                                                    </Link>
+                                                </li>
+                                            )
+                                        }
+                                    )}
                                 </ul>
                             </nav>
                             <VerticalSubtitleDrop />
@@ -151,36 +153,25 @@ export function Root() {
                             </div>
                             <nav className="">
                                 <ul className="flex flex-col justify-between gap-sm">
-                                    <li>
-                                        <Link
-                                            to={'/home'}
-                                            className={
-                                                'text-sm ' +
-                                                (location.pathname.startsWith(
-                                                    '/home'
-                                                )
-                                                    ? 'text-primary'
-                                                    : 'text-gray-830')
-                                            }
-                                        >
-                                            Home
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            to={'/media'}
-                                            className={
-                                                'text-sm ' +
-                                                (location.pathname.startsWith(
-                                                    '/media'
-                                                )
-                                                    ? 'text-primary'
-                                                    : 'text-gray-830')
-                                            }
-                                        >
-                                            Media
-                                        </Link>
-                                    </li>
+                                    {navigations.map(({ link, name }) => {
+                                        return (
+                                            <li key={link}>
+                                                <Link
+                                                    to={link}
+                                                    className={
+                                                        'text-sm ' +
+                                                        (location.pathname.startsWith(
+                                                            link
+                                                        )
+                                                            ? 'text-primary'
+                                                            : 'text-gray-830')
+                                                    }
+                                                >
+                                                    {name}
+                                                </Link>
+                                            </li>
+                                        )
+                                    })}
                                 </ul>
                             </nav>
                             <div className="outline-sm flex aspect-[3/4] w-full flex-col items-center justify-center rounded-sm outline-dashed outline-gray-190">

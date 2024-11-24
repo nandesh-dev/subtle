@@ -55,8 +55,9 @@ type Segment struct {
 }
 
 type Routine struct {
-	Name      string
-	IsRunning bool
+	Name        string `gorm:"primaryKey"`
+	Description string
+	IsRunning   bool
 }
 
 func Database() *gorm.DB {

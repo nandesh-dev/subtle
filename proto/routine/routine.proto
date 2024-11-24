@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package routine;
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/routine";
+
+service RoutineService {
+  rpc GetRoutines(GetRoutinesRequest) returns (GetRoutinesResponse);
+}
+
+message GetRoutinesRequest {}
+
+message GetRoutinesResponse {
+  repeated Routine routines = 1;
+}
+
+message Routine {
+  string name = 1;
+  string description = 2;
+  bool is_running = 3;
+}

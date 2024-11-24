@@ -15,6 +15,30 @@ func Run() {
 	logger.Logger().Log("Format Routine", "Running format routine")
 	defer logger.Logger().Log("Format Routine", "Format routine complete")
 
+	var routineEntry database.Routine
+	if err := database.Database().Where(database.Routine{Name: "Format"}).FirstOrCreate(&routineEntry, database.Routine{Name: "Format", Description: "Converts the original text / image into final text applying all the formating specified.", IsRunning: false}).Error; err != nil {
+		logger.Logger().Error("Format Routine", fmt.Errorf("Error getting routine entry from database: %v", err))
+		return
+	}
+
+	if routineEntry.IsRunning {
+		logger.Logger().Error("Format Routine", fmt.Errorf("Media routine is already running"))
+		return
+	}
+
+	routineEntry.IsRunning = true
+	if err := database.Database().Save(routineEntry).Error; err != nil {
+		logger.Logger().Error("Format Routine", fmt.Errorf("Error updating routine status in database: %v", err))
+		return
+	}
+
+	defer func() {
+		routineEntry.IsRunning = false
+		if err := database.Database().Save(routineEntry).Error; err != nil {
+			logger.Logger().Error("Format Routine", fmt.Errorf("Error updating routine status in database: %v", err))
+		}
+	}()
+
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		if !mediaDirectoryConfig.Formating.Enable {
 			continue
