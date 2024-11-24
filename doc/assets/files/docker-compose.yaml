@@ -1,0 +1,13 @@
+---
+services:
+  subtle:
+    image: nandeshdev/subtle:dev
+    container_name: subtle
+    environment:
+      - CONFIG_DIRECTORY=/config
+    volumes:
+      - /<config_directory_path>:/config
+      - /<media_directory_path>:/media
+    ports:
+      - 3000:3000
+    restart: unless-stopped
