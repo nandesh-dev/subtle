@@ -6,7 +6,8 @@ import {
     GetDirectoryRequest,
     GetVideoRequest,
 } from '../../../gen/proto/media/media_pb'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { GetSubtitleRequest } from '../../../gen/proto/subtitle/subtitle_pb'
 
 export function Media() {
     const { MediaServiceClient } = useProto()
@@ -106,14 +107,9 @@ function Folder({ path }: FolderProp) {
         return (
             <div className="grid grid-cols-[auto_1fr] gap-md rounded-sm bg-gray-80 p-md">
                 <FolderIcon className="h-full fill-red" />
-                <div className="">
-                    <p className="text-start text-sm text-gray-830">
-                        Loading...
-                    </p>
-                    <div className="flex w-full flex-row justify-between">
-                        <p className="text-xs text-gray-520">Subtitle</p>
-                        <p className="text-xs text-gray-520">../..</p>
-                    </div>
+                <div className="grid grid-flow-row gap-xs">
+                    <div className="h-md animate-pulse rounded-sm bg-gray-190 text-start text-sm text-gray-830" />
+                    <div className="h-sm w-1/2 animate-pulse rounded-sm bg-gray-120" />
                 </div>
             </div>
         )
@@ -129,12 +125,12 @@ function Folder({ path }: FolderProp) {
             }}
         >
             <FolderIcon className="h-full fill-red" />
-            <div className="">
+            <div className="grid grid-flow-row gap-xs">
                 <p className="text-start text-sm text-gray-830">{data?.name}</p>
-                <div className="flex w-full flex-row justify-between">
-                    <p className="text-xs text-gray-520">Subtitle</p>
-                    <p className="text-xs text-gray-520">10/20</p>
-                </div>
+                <p className="text-start text-xs text-gray-520">
+                    {data?.videoIds.length} Videos /{' '}
+                    {data?.childrenPaths.length} Folders
+                </p>
             </div>
         </button>
     )
@@ -148,7 +144,7 @@ function Video({ id }: FileProp) {
     const { MediaServiceClient } = useProto()
     const navigate = useNavigate()
 
-    const { data, isLoading } = useQuery({
+    const { data: video, isLoading } = useQuery({
         queryKey: ['get-video', id],
         queryFn: () =>
             MediaServiceClient?.getVideo(new GetVideoRequest({ id })),
@@ -156,24 +152,14 @@ function Video({ id }: FileProp) {
 
     if (isLoading) {
         return (
-            <>
-                <Small>
-                    <div className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm">
-                        <p className="text-start text-sm text-gray-830">...</p>
-                        <div className="flex flex-row justify-between">
-                            <p className="text-sm text-gray-520">...</p>
-                        </div>
-                    </div>
-                </Small>
-                <Large>
-                    <div className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm">
-                        <p className="text-start text-sm text-gray-830">...</p>
-                        <div className="grid grid-cols-3">
-                            <p className="text-sm text-gray-520">...</p>
-                        </div>
-                    </div>
-                </Large>
-            </>
+            <div className="flex flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:grid-cols-2 lg:items-center">
+                <div className="h-md animate-pulse rounded-sm bg-gray-190" />
+                <div className="flex grid-cols-3 flex-row justify-items-end gap-xs lg:grid">
+                    <div className="h-sm w-[4rem] animate-pulse rounded-sm bg-gray-120" />
+                    <div className="h-sm w-[8rem] animate-pulse rounded-sm bg-gray-120" />
+                    <div className="h-sm w-[2rem] animate-pulse rounded-sm bg-gray-120" />
+                </div>
+            </div>
         )
     }
 
@@ -183,38 +169,17 @@ function Video({ id }: FileProp) {
     }
 
     return (
-        <>
-            <Small>
-                <button
-                    className="grid grid-rows-2 gap-sm rounded-sm bg-gray-80 p-sm"
-                    onClick={onClick}
-                >
-                    <p className="text-start text-sm text-gray-830">
-                        {data?.baseName}
-                    </p>
-                    <div className="flex flex-row justify-between">
-                        <p className="text-sm text-gray-520">
-                            {data?.extension}
-                        </p>
-                    </div>
-                </button>
-            </Small>
-            <Large>
-                <button
-                    className="grid grid-cols-2 rounded-sm bg-gray-80 p-sm"
-                    onClick={onClick}
-                >
-                    <p className="text-start text-sm text-gray-830">
-                        {data?.baseName}
-                    </p>
-                    <div className="grid grid-cols-3 justify-items-end">
-                        <p className="text-sm text-gray-520">
-                            {data?.extension}
-                        </p>
-                    </div>
-                </button>
-            </Large>
-        </>
+        <button
+            className="flex grid-cols-2 flex-col gap-xs rounded-sm bg-gray-80 p-sm lg:grid lg:items-center"
+            onClick={onClick}
+        >
+            <p className="text-start text-sm text-gray-830">
+                {video?.baseName}
+            </p>
+            <div className="flex grid-cols-3 flex-row justify-items-end gap-xs lg:grid">
+                <p className="text-sm text-gray-520">{video?.extension}</p>
+            </div>
+        </button>
     )
 }
 
