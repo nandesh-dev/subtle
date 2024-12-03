@@ -42,22 +42,22 @@ func Run() {
 	}
 
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
-		logger.Info("reading watch directory", slog.Group("info", "path", mediaDirectoryConfig.Path))
+		directoryPathStack := []string{mediaDirectoryConfig.Path}
 
-		watchDirectory, _, err := filemanager.ReadDirectory(mediaDirectoryConfig.Path, true)
-		if err != nil {
-			logger.Error("cannot react watch directory", "err", err)
-			return
-		}
+		for len(directoryPathStack) > 0 {
+			path := directoryPathStack[len(directoryPathStack)-1]
+			directoryPathStack = directoryPathStack[:len(directoryPathStack)-1]
 
-		stack := []filemanager.Directory{*watchDirectory}
+			logger.Info("reading directory", slog.Group("info", "path", mediaDirectoryConfig.Path))
+			directory, err := filemanager.ReadDirectory(path)
+			if err != nil {
+				logger.Error("cannot read directory", "err", err)
+				continue
+			}
 
-		for len(stack) > 0 {
-			currentDirectory := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			stack = append(stack, currentDirectory.Children()...)
+			directoryPathStack = append(directoryPathStack, directory.ChildrenPaths...)
 
-			for _, video := range currentDirectory.VideoFiles() {
+			for _, video := range directory.Videos {
 				var count int64
 				if err := database.Database().
 					Model(&database.Video{}).
@@ -73,14 +73,13 @@ func Run() {
 					continue
 				}
 
+				logger.Info("processing video", slog.Group("info", "path", video.Filepath()))
+
 				videoEntry := database.Video{
 					DirectoryPath: video.DirectoryPath(),
 					Filename:      video.Filename(),
-				}
 
-				logger.Info("adding video to database", slog.Group("info", "filepath", video.Filepath()))
-				if err := database.Database().Create(&videoEntry).Error; err != nil {
-					logger.Error("cannot save video to database", "err", err)
+					Subtitles: make([]database.Subtitle, 0),
 				}
 
 				rawStreams, err := video.RawStreams()
@@ -97,7 +96,6 @@ func Run() {
 					}
 
 					subtitleEntry := database.Subtitle{
-						VideoID:  videoEntry.ID,
 						Language: rawStream.Language().String(),
 
 						ImportIsExternal:       false,
@@ -105,10 +103,12 @@ func Run() {
 						ImportVideoStreamIndex: rawStream.Index(),
 					}
 
-					logger.Info("adding raw stream subtitle to database", slog.Group("info", "title", title, "video_id", videoEntry.ID))
-					if err := database.Database().Create(&subtitleEntry).Error; err != nil {
-						logger.Error("cannot save subtitle to database", "err", err)
-					}
+					videoEntry.Subtitles = append(videoEntry.Subtitles, subtitleEntry)
+				}
+
+				logger.Info("adding video to database", slog.Group("info", "filepath", video.Filepath()))
+				if err := database.Database().Create(&videoEntry).Error; err != nil {
+					logger.Error("cannot save video to database", "err", err)
 				}
 			}
 		}

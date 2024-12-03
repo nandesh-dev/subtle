@@ -29,13 +29,13 @@ func (s ServiceHandler) GetDirectory(ctx context.Context, req *connect.Request[m
 		return connect.NewResponse(&res), nil
 	}
 
-	dir, _, _ := filemanager.ReadDirectory(req.Msg.Path, false)
+	dir, _ := filemanager.ReadDirectory(req.Msg.Path)
 
-	for _, child := range dir.Children() {
-		res.ChildrenPaths = append(res.ChildrenPaths, child.Path())
+	for _, childPath := range dir.ChildrenPaths {
+		res.ChildrenPaths = append(res.ChildrenPaths, childPath)
 	}
 
-	for _, video := range dir.VideoFiles() {
+	for _, video := range dir.Videos {
 		var videoEntry database.Video
 
 		if err := database.Database().Where(&database.Video{
