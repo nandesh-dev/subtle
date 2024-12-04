@@ -18,30 +18,6 @@ func Run() {
 	logger.Logger().Log("Export Routine", "Running export routine")
 	defer logger.Logger().Log("Export Routine", "Export routine complete")
 
-	var routineEntry database.Routine
-	if err := database.Database().Where(database.Routine{Name: "Export"}).FirstOrCreate(&routineEntry, database.Routine{Name: "Export", Description: "Exports subtitles to files.", IsRunning: false}).Error; err != nil {
-		logger.Logger().Error("Export Routine", fmt.Errorf("Error getting routine entry from database: %v", err))
-		return
-	}
-
-	if routineEntry.IsRunning {
-		logger.Logger().Error("Export Routine", fmt.Errorf("Media routine is already running"))
-		return
-	}
-
-	routineEntry.IsRunning = true
-	if err := database.Database().Save(routineEntry).Error; err != nil {
-		logger.Logger().Error("Export Routine", fmt.Errorf("Error updating routine status in database: %v", err))
-		return
-	}
-
-	defer func() {
-		routineEntry.IsRunning = false
-		if err := database.Database().Save(routineEntry).Error; err != nil {
-			logger.Logger().Error("Export Routine", fmt.Errorf("Error updating routine status in database: %v", err))
-		}
-	}()
-
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		if !mediaDirectoryConfig.Exporting.Enable {
 			continue

@@ -16,32 +16,6 @@ import (
 func Run() {
 	logger := logging.NewRoutineLogger("extract")
 
-	var routineEntry database.Routine
-	if err := database.Database().
-		Where(database.Routine{Name: "Extract"}).
-		FirstOrCreate(
-			&routineEntry,
-			database.Routine{
-				Name:        "Extract",
-				Description: "Converts the raw subtitle streams into usable text / images based subtitles.",
-				IsRunning:   false,
-			},
-		).Error; err != nil {
-		logger.Error("cannot get routine from database", "err", err)
-		return
-	}
-
-	if routineEntry.IsRunning {
-		logger.Error("already running")
-		return
-	}
-
-	routineEntry.IsRunning = true
-	if err := database.Database().Save(routineEntry).Error; err != nil {
-		logger.Error("cannot update subtitle status in database", "err", err)
-		return
-	}
-
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		if !mediaDirectoryConfig.Extraction.Enable {
 			continue
@@ -123,10 +97,5 @@ func Run() {
 				actions.ExtractSubtitle(bestSubtitleEntry.ID)
 			}
 		}
-	}
-
-	routineEntry.IsRunning = false
-	if err := database.Database().Save(routineEntry).Error; err != nil {
-		logger.Error("cannot update routine status in database", "err", err)
 	}
 }

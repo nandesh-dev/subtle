@@ -15,32 +15,6 @@ import (
 func Run() {
 	logger := logging.NewRoutineLogger("media")
 
-	var routineEntry database.Routine
-	if err := database.Database().
-		Where(database.Routine{Name: "Media"}).
-		FirstOrCreate(
-			&routineEntry,
-			database.Routine{
-				Name:        "Media",
-				Description: "Scans the media directory for new video files and extract raw subtitle streams from it.",
-				IsRunning:   false,
-			},
-		).Error; err != nil {
-		logger.Error("cannot get routine from database", "err", err)
-		return
-	}
-
-	if routineEntry.IsRunning {
-		logger.Error("routine already running")
-		return
-	}
-
-	routineEntry.IsRunning = true
-	if err := database.Database().Save(routineEntry).Error; err != nil {
-		logger.Error("cannot update routine status in database", "err", err)
-		return
-	}
-
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		directoryPathStack := []string{mediaDirectoryConfig.Path}
 
@@ -48,7 +22,7 @@ func Run() {
 			path := directoryPathStack[len(directoryPathStack)-1]
 			directoryPathStack = directoryPathStack[:len(directoryPathStack)-1]
 
-			logger.Info("reading directory", slog.Group("info", "path", mediaDirectoryConfig.Path))
+			logger.Info("reading directory", slog.Group("info", "path", path))
 			directory, err := filemanager.ReadDirectory(path)
 			if err != nil {
 				logger.Error("cannot read directory", "err", err)
