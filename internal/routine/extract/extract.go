@@ -2,43 +2,45 @@ package extract
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/nandesh-dev/subtle/internal/actions"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/database"
-	"github.com/nandesh-dev/subtle/pkgs/logger"
+	"github.com/nandesh-dev/subtle/pkgs/logging"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 	"golang.org/x/text/language"
 )
 
 func Run() {
-	logger.Logger().Log("Extract Routine", "Running extract routine")
-	defer logger.Logger().Log("Extract Routine", "Extract routine complete")
+	logger := logging.NewRoutineLogger("extract")
 
 	var routineEntry database.Routine
-	if err := database.Database().Where(database.Routine{Name: "Extract"}).FirstOrCreate(&routineEntry, database.Routine{Name: "Extract", Description: "Converts the raw subtitle streams into usable text / images based subtitles.", IsRunning: false}).Error; err != nil {
-		logger.Logger().Error("Extract Routine", fmt.Errorf("Error getting routine entry from database: %v", err))
+	if err := database.Database().
+		Where(database.Routine{Name: "Extract"}).
+		FirstOrCreate(
+			&routineEntry,
+			database.Routine{
+				Name:        "Extract",
+				Description: "Converts the raw subtitle streams into usable text / images based subtitles.",
+				IsRunning:   false,
+			},
+		).Error; err != nil {
+		logger.Error("cannot get routine from database", "err", err)
 		return
 	}
 
 	if routineEntry.IsRunning {
-		logger.Logger().Error("Extract Routine", fmt.Errorf("Media routine is already running"))
+		logger.Error("already running")
 		return
 	}
 
 	routineEntry.IsRunning = true
 	if err := database.Database().Save(routineEntry).Error; err != nil {
-		logger.Logger().Error("Extract Routine", fmt.Errorf("Error updating routine status in database: %v", err))
+		logger.Error("cannot update subtitle status in database", "err", err)
 		return
 	}
-
-	defer func() {
-		routineEntry.IsRunning = false
-		if err := database.Database().Save(routineEntry).Error; err != nil {
-			logger.Logger().Error("Extract Routine", fmt.Errorf("Error updating routine status in database: %v", err))
-		}
-	}()
 
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		if !mediaDirectoryConfig.Extraction.Enable {
@@ -56,22 +58,21 @@ func Run() {
 			var bestSubtitleEntry *database.Subtitle
 
 			for _, subtitleEntry := range videoEntry.Subtitles {
-				logger.Logger().Log("Extract Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
 				if subtitleEntry.IsExtracted {
 					break
 				}
 
-				logger.Logger().Log("Extract Routine", fmt.Sprintf("Extracting subtitle: %v", subtitleEntry.Title))
+				logger.Info("evaluating subtitle", slog.Group("info", "title", subtitleEntry.Title, "format", subtitleEntry.ImportFormat))
 
 				format, err := subtitle.ParseFormat(subtitleEntry.ImportFormat)
 				if err != nil {
-					logger.Logger().Error("Extract Routine", fmt.Errorf("Error parsing subtitle format: %v", err))
+					logger.Error("cannot parse subtitle format", "err", err)
 					continue
 				}
 
 				lang, err := language.Parse(subtitleEntry.Language)
 				if err != nil {
-					logger.Logger().Error("Extract Routine", fmt.Errorf("Error parsing subtitle language: %v", err))
+					logger.Error("cannot parse subtitle language", "err", err)
 					continue
 				}
 
@@ -122,5 +123,10 @@ func Run() {
 				actions.ExtractSubtitle(bestSubtitleEntry.ID)
 			}
 		}
+	}
+
+	routineEntry.IsRunning = false
+	if err := database.Database().Save(routineEntry).Error; err != nil {
+		logger.Error("cannot update routine status in database", "err", err)
 	}
 }
