@@ -1,6 +1,8 @@
 module github.com/nandesh-dev/subtle
 
-go 1.22.6
+go 1.23.0
+
+toolchain go1.23.3
 
 require (
 	connectrpc.com/connect v1.17.0
@@ -19,6 +21,7 @@ require (
 )
 
 require (
+	entgo.io/ent v0.14.1 // indirect
 	github.com/aws/aws-sdk-go v1.38.20 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
