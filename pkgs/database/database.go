@@ -19,7 +19,6 @@ type Video struct {
 	DirectoryPath string
 	Filename      string
 	Subtitles     []Subtitle `gorm:"foreignKey:VideoID"`
-	IsProcessing  bool
 }
 
 type Subtitle struct {
