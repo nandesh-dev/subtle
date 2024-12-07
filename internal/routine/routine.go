@@ -1,9 +1,11 @@
 package routine
 
 import (
+	"context"
 	"time"
 
 	"github.com/nandesh-dev/subtle/generated/ent"
+	routine_schema "github.com/nandesh-dev/subtle/generated/ent/routine"
 	"github.com/nandesh-dev/subtle/internal/routine/export"
 	"github.com/nandesh-dev/subtle/internal/routine/extract"
 	"github.com/nandesh-dev/subtle/internal/routine/format"
@@ -13,20 +15,6 @@ import (
 )
 
 func Start(db *ent.Client) error {
-	ticker := time.NewTicker(config.Config().Routine.Delay)
-	defer ticker.Stop()
-
-	run(db)
-
-	for {
-		select {
-		case <-ticker.C:
-			run(db)
-		}
-	}
-}
-
-func run(db *ent.Client) {
 	logger := logging.NewManagerLogger("routine")
 
 	routines := []struct {
@@ -57,8 +45,65 @@ func run(db *ent.Client) {
 	}
 
 	for _, routine := range routines {
-		logger.Info("running routine", "name", routine.name)
+		if count, err := db.Routine.Update().Where(routine_schema.Name(routine.name)).SetDescription(routine.description).SetRunning(false).Save(context.Background()); err != nil {
+			logger.Error("cannot update routine info to database", "err", err)
+			return err
+		} else if count == 0 {
+			if err := db.Routine.Create().SetName(routine.name).SetDescription(routine.description).Exec(context.Background()); err != nil {
+				logger.Error("cannot add routine into to database", "err", err)
+				return err
+			}
+		}
+	}
+
+	ticker := time.NewTicker(config.Config().Routine.Delay)
+	defer ticker.Stop()
+
+	run(db, routines)
+
+	for {
+		select {
+		case <-ticker.C:
+			run(db, routines)
+		}
+	}
+}
+
+func run(db *ent.Client, routines []struct {
+	name        string
+	description string
+	run         func(*ent.Client)
+}) {
+	logger := logging.NewManagerLogger("routine")
+
+	runningRoutineCount, err := db.Routine.Query().Where(routine_schema.Running(true)).Count(context.Background())
+	if err != nil {
+		logger.Error("cannot get running routine count from database", "err", err)
+		return
+	}
+
+	if runningRoutineCount > 0 {
+		logger.Info("some routine(s) are already running! skipping")
+		return
+	}
+
+	for _, routine := range routines {
+		logger := logger.With("name", routine.name)
+
+		if err := db.Routine.Update().Where(routine_schema.Name(routine.name)).SetRunning(true).Exec(context.Background()); err != nil {
+			logger.Error("cannot update routine to running", "err", err)
+			continue
+		}
+
+		logger.Info("running routine")
+
 		routine.run(db)
-		logger.Info("routine completed", "name", routine.name)
+
+		logger.Info("routine completed")
+
+		if err := db.Routine.Update().Where(routine_schema.Name(routine.name)).SetRunning(false).Exec(context.Background()); err != nil {
+			logger.Error("cannot update routine to stopped", "err", err)
+			continue
+		}
 	}
 }
