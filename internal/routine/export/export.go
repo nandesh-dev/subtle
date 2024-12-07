@@ -1,63 +1,137 @@
 package export
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/nandesh-dev/subtle/internal/actions"
+	"github.com/nandesh-dev/subtle/generated/ent"
+	"github.com/nandesh-dev/subtle/generated/ent/segment"
+	subtitle_schema "github.com/nandesh-dev/subtle/generated/ent/subtitle"
+	video_schema "github.com/nandesh-dev/subtle/generated/ent/video"
 	"github.com/nandesh-dev/subtle/pkgs/config"
-	"github.com/nandesh-dev/subtle/pkgs/database"
-	"github.com/nandesh-dev/subtle/pkgs/logger"
+	"github.com/nandesh-dev/subtle/pkgs/logging"
+	"github.com/nandesh-dev/subtle/pkgs/srt"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
-	"gorm.io/gorm"
 )
 
-func Run() {
-	logger.Logger().Log("Export Routine", "Running export routine")
-	defer logger.Logger().Log("Export Routine", "Export routine complete")
+func Run(db *ent.Client) {
+	logger := logging.NewRoutineLogger("format")
 
 	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
 		if !mediaDirectoryConfig.Exporting.Enable {
 			continue
 		}
 
-		var videoEntries []database.Video
-		database.Database().
-			Where("directory_path LIKE ?", fmt.Sprintf("%s%%", mediaDirectoryConfig.Path)).
-			Preload("Subtitles").
-			FindInBatches(&videoEntries, 10, func(tx *gorm.DB, batch int) error {
-				for _, videoEntry := range videoEntries {
-					for _, subtitleEntry := range videoEntry.Subtitles {
-						logger.Logger().Log("Export Routine", fmt.Sprintf("Checking subtitle: %v", subtitleEntry.Title))
-						if subtitleEntry.IsExtracted && subtitleEntry.IsFormated && !subtitleEntry.IsExported {
-							exportFormat, err := subtitle.ParseFormat(mediaDirectoryConfig.Exporting.Format)
-							if err != nil {
-								logger.Logger().Error("Export Routine", fmt.Errorf("Error parsing export format in config: %v", err))
-								continue
-							}
+		exportFormat, err := subtitle.ParseFormat(mediaDirectoryConfig.Exporting.Format)
+		if err != nil {
+			logger.Error("cannot parse export format from config", "err", err)
+			continue
+		}
 
-							baseFilepath := filepath.Join(videoEntry.DirectoryPath, strings.Trim(filepath.Base(videoEntry.Filename), filepath.Ext(videoEntry.Filename)))
+		if exportFormat != subtitle.SRT {
+			logger.Error("unsupported export format")
+			continue
+		}
 
-							if _, err := os.Stat(baseFilepath); err == nil {
-								logger.Logger().Error("Export Routine", fmt.Errorf("A subtitle file already exist with the filename: %v", baseFilepath))
-								continue
-							} else if !os.IsNotExist(err) {
-								logger.Logger().Error("Export Routine", fmt.Errorf("Error checking if a subtitle file already exist with the filename: %v", baseFilepath))
-								continue
-							}
+		videoEntries, err := db.Video.Query().Where(video_schema.FilepathHasPrefix(mediaDirectoryConfig.Path)).All(context.Background())
+		if err != nil {
+			logger.Error("cannot get videos from database", "err", err)
+			continue
+		}
 
-							if err := actions.ExportSubtitle(subtitleEntry.ID, actions.ExportSubtitleConfig{
-								Format:       exportFormat,
-								BaseFilepath: baseFilepath,
-							}); err != nil {
-								logger.Logger().Error("Export Routine", fmt.Errorf("Error exporting subtitle: %v", err))
-							}
-						}
+		for _, videoEntry := range videoEntries {
+			logger := logger.With("video_filepath", videoEntry.Filepath)
+
+			subtitleEntries, err := videoEntry.QuerySubtitles().
+				Where(subtitle_schema.Processing(false), subtitle_schema.Extracted(true), subtitle_schema.Formated(true), subtitle_schema.Exported(false)).
+				All(context.Background())
+			if err != nil {
+				logger.Error("cannot get subtitle from database", "err", err)
+			}
+
+			for _, subtitleEntry := range subtitleEntries {
+				logger := logger.With("subtitle_title", subtitleEntry.Title)
+
+				logger.Info("exporting subtitle")
+
+				exportFilepath := fmt.Sprintf(
+					"%s.%s.%s",
+					strings.TrimSuffix(videoEntry.Filepath, filepath.Ext(videoEntry.Filepath)),
+					subtitleEntry.Language,
+					subtitle.MapFormat(exportFormat),
+				)
+
+				if _, err := os.Stat(exportFilepath); err == nil {
+					logger.Error("subtitle file already exist with same filepath")
+					continue
+				} else if !os.IsNotExist(err) {
+					logger.Error("cannot check if subtitle file already exist", "err", err)
+					continue
+				}
+
+				tx, err := db.Tx(context.Background())
+				if err != nil {
+					logger.Error(logging.DatabaseTransactionCreateError, "err", err)
+					continue
+				}
+
+				if err := db.Subtitle.UpdateOne(subtitleEntry).SetProcessing(true).Exec(context.Background()); err != nil {
+					logger.Error("cannot update subtitle processing status in database", "err", err)
+					continue
+				}
+
+				defer func() {
+					if err := db.Subtitle.UpdateOneID(subtitleEntry.ID).SetProcessing(false).Exec(context.Background()); err != nil {
+						logger.Error("cannot update subtitle processing status in database", "err", err)
+					}
+				}()
+
+				if err := func() error {
+					segmentEntries, err := tx.Segment.Query().Where(segment.HasSubtitleWith(subtitle_schema.ID(subtitleEntry.ID))).All(context.Background())
+					if err != nil {
+						logger.Error("cannot get subtitle segments from database", "err", err)
+						return err
+					}
+
+					exportSubtitle := subtitle.NewTextSubtitle()
+
+					for _, segmentEntry := range segmentEntries {
+						exportSubtitle.AddSegment(*subtitle.NewTextSegment(
+							segmentEntry.StartTime,
+							segmentEntry.EndTime,
+							segmentEntry.Text),
+						)
+					}
+
+					encodedSubtitle := srt.EncodeSubtitle(*exportSubtitle)
+
+					if err := os.WriteFile(exportFilepath, []byte(encodedSubtitle), 0644); err != nil {
+						logger.Error("cannot write subtitle to file", "err", err)
+						return err
+					}
+
+					if err := tx.Subtitle.UpdateOne(subtitleEntry).SetExported(true).Exec(context.Background()); err != nil {
+						logger.Error("cannot update subtitle to exported", "err", err)
+						return err
+					}
+
+					logger.Info("subtitle exported")
+
+					return nil
+				}(); err != nil {
+					if err := tx.Rollback(); err != nil {
+						logger.Error(logging.DatabaseTransactionRollbackError, "err", err)
+					}
+				} else {
+					if err := tx.Commit(); err != nil {
+						logger.Error(logging.DatabaseTransactionCommitError, "err", err)
 					}
 				}
-				return nil
-			})
+
+			}
+		}
 	}
 }
