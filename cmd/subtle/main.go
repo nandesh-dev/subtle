@@ -9,6 +9,7 @@ import (
 	"github.com/nandesh-dev/subtle/internal/jobs"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/ent"
+	"github.com/nandesh-dev/subtle/pkgs/logging"
 )
 
 func main() {
@@ -27,6 +28,20 @@ func main() {
 		log.Fatal("Cannot read config", err)
 	}
 
+	logFile, err := os.OpenFile(c.Logging.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal("cannot open log file", err)
+	}
+
+	defer logFile.Close()
+
+	logger := logging.New(logging.Options{
+		ConsoleLevel:  c.Logging.ConsoleLevel,
+		FileLevel:     c.Logging.FileLevel,
+		ConsoleWriter: os.Stdout,
+		FileWriter:    logFile,
+	})
+
 	db, err := ent.Open(c.Database.Path)
 	if err != nil {
 		log.Fatal("Cannot open database", err)
@@ -36,5 +51,5 @@ func main() {
 		log.Fatal("Cannot migrate database", err)
 	}
 
-	jobs.Init(config, db)
+	jobs.Init(logger, config, db)
 }

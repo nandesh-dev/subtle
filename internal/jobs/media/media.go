@@ -14,9 +14,7 @@ import (
 	"golang.org/x/text/language/display"
 )
 
-func Run(conf *config.Config, db *ent.Client) {
-	logger := logging.NewRoutineLogger("media")
-
+func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 	c, err := conf.Read()
 	if err != nil {
 		logger.Error("cannot read config", "err", err)

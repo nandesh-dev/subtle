@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/nandesh-dev/subtle/generated/ent"
@@ -11,21 +12,18 @@ import (
 	"github.com/nandesh-dev/subtle/internal/jobs/format"
 	"github.com/nandesh-dev/subtle/internal/jobs/media"
 	"github.com/nandesh-dev/subtle/pkgs/config"
-	"github.com/nandesh-dev/subtle/pkgs/logging"
 )
 
-func Init(conf *config.Config, db *ent.Client) error {
+func Init(logger *slog.Logger, conf *config.Config, db *ent.Client) error {
 	c, err := conf.Read()
 	if err != nil {
 		return err
 	}
 
-	logger := logging.NewManagerLogger("job")
-
 	jobs := []struct {
 		name        string
 		description string
-		run         func(*config.Config, *ent.Client)
+		run         func(*slog.Logger, *config.Config, *ent.Client)
 	}{
 		{
 			name:        "Media",
@@ -64,23 +62,21 @@ func Init(conf *config.Config, db *ent.Client) error {
 	ticker := time.NewTicker(c.Job.Delay)
 	defer ticker.Stop()
 
-	RunAll(conf, db, jobs)
+	RunAll(logger, conf, db, jobs)
 
 	for {
 		select {
 		case <-ticker.C:
-			RunAll(conf, db, jobs)
+			RunAll(logger, conf, db, jobs)
 		}
 	}
 }
 
-func RunAll(conf *config.Config, db *ent.Client, jobs []struct {
+func RunAll(logger *slog.Logger, conf *config.Config, db *ent.Client, jobs []struct {
 	name        string
 	description string
-	run         func(*config.Config, *ent.Client)
+	run         func(*slog.Logger, *config.Config, *ent.Client)
 }) {
-	logger := logging.NewManagerLogger("job")
-
 	runningJobCount, err := db.Job.Query().Where(job_schema.Running(true)).Count(context.Background())
 	if err != nil {
 		logger.Error("cannot get running job count from database", "err", err)
@@ -93,7 +89,7 @@ func RunAll(conf *config.Config, db *ent.Client, jobs []struct {
 	}
 
 	for _, job := range jobs {
-		logger := logger.With("name", job.name)
+		logger := logger.With("job", job.name)
 
 		if err := db.Job.Update().Where(job_schema.Name(job.name)).SetRunning(true).Exec(context.Background()); err != nil {
 			logger.Error("cannot update job to running", "err", err)
@@ -102,7 +98,7 @@ func RunAll(conf *config.Config, db *ent.Client, jobs []struct {
 
 		logger.Info("running job")
 
-		job.run(conf, db)
+		job.run(logger, conf, db)
 
 		logger.Info("job completed")
 

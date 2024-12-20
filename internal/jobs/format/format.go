@@ -3,6 +3,7 @@ package format
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/nandesh-dev/subtle/generated/ent"
@@ -16,9 +17,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func Run(conf *config.Config, db *ent.Client) {
-	logger := logging.NewRoutineLogger("format")
-
+func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 	c, err := conf.Read()
 	if err != nil {
 		logger.Error("cannot read config", "err", err)

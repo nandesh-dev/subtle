@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -90,7 +91,9 @@ type Job struct {
 }
 
 type Logging struct {
-	Path string
+	Path         string
+	ConsoleLevel slog.Level `yaml:"console_level"`
+	FileLevel    slog.Level `yaml:"file_level"`
 }
 
 type Data struct {
@@ -120,7 +123,9 @@ func Open(path string) (*Config, error) {
 				Delay: time.Minute * 15,
 			},
 			Logging: Logging{
-				Path: filepath.Join(basepath, "logs.log"),
+				Path:         filepath.Join(basepath, "logs.log"),
+				ConsoleLevel: slog.LevelWarn,
+				FileLevel:    slog.LevelInfo,
 			},
 		},
 		MediaDirectories: []MediaDirectory{
