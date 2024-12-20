@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"golang.org/x/text/language"
@@ -94,125 +93,115 @@ type Logging struct {
 	Path string
 }
 
-type t struct {
+type Data struct {
 	MediaDirectories []MediaDirectory `yaml:"watch_directories"`
 	Server
 }
 
-var (
-	config t
-	path   string
-	once   sync.Once
-)
-
-func Config() *t {
-	return &config
+type Config struct {
+	Path string
 }
 
-func Init(basepath string) (e error) {
-	once.Do(func() {
-		config = t{
-			Server: Server{
-				Web: Web{
-					Port:                 3000,
-					COROrigins:           make([]string, 0),
-					EnableGRPCReflection: false,
-					ServeDirectory:       "/public",
-				},
-				Database: Database{
-					Path: filepath.Join(basepath, "database.db"),
-				},
-				Routine: Routine{
-					Delay: time.Minute * 15,
-				},
-				Logging: Logging{
-					Path: filepath.Join(basepath, "logs.log"),
-				},
+func Open(path string) (*Config, error) {
+	basepath := filepath.Dir(path)
+
+	defaultConfig := Data{
+		Server: Server{
+			Web: Web{
+				Port:                 3000,
+				COROrigins:           make([]string, 0),
+				EnableGRPCReflection: false,
+				ServeDirectory:       "/public",
 			},
-			MediaDirectories: []MediaDirectory{
-				{
-					Path: "/media",
-					Extraction: Extraction{
-						Enable:                 false,
-						RawStreamTitleKeywords: []string{"Full", "Dialogue"},
-						Formats: Formats{
-							ASS: ASS{
-								Enable:    true,
-								Languages: []language.Tag{language.English},
-							},
-							PGS: PGS{
-								Enable:    true,
-								Languages: []language.Tag{language.English},
-							},
+			Database: Database{
+				Path: filepath.Join(basepath, "database.db"),
+			},
+			Routine: Routine{
+				Delay: time.Minute * 15,
+			},
+			Logging: Logging{
+				Path: filepath.Join(basepath, "logs.log"),
+			},
+		},
+		MediaDirectories: []MediaDirectory{
+			{
+				Path: "/media",
+				Extraction: Extraction{
+					Enable:                 false,
+					RawStreamTitleKeywords: []string{"Full", "Dialogue"},
+					Formats: Formats{
+						ASS: ASS{
+							Enable:    true,
+							Languages: []language.Tag{language.English},
+						},
+						PGS: PGS{
+							Enable:    true,
+							Languages: []language.Tag{language.English},
 						},
 					},
-					Formating: Formating{
-						Enable: false,
-						TextBasedSubtitle: TextBasedSubtitle{
-							CharactorMappings: []CharactorMapping{},
-						},
-						ImageBasedSubtitle: ImageBasedSubtitle{
-							CharactorMappings: []CharactorMapping{
-								{
-									Language: language.English,
-									Mappings: []Mapping{
-										{
-											From: "|",
-											To:   "I",
-										},
+				},
+				Formating: Formating{
+					Enable: false,
+					TextBasedSubtitle: TextBasedSubtitle{
+						CharactorMappings: []CharactorMapping{},
+					},
+					ImageBasedSubtitle: ImageBasedSubtitle{
+						CharactorMappings: []CharactorMapping{
+							{
+								Language: language.English,
+								Mappings: []Mapping{
+									{
+										From: "|",
+										To:   "I",
 									},
 								},
 							},
 						},
 					},
-					Exporting: Exporting{
-						Enable: false,
-						Format: "srt",
-					},
+				},
+				Exporting: Exporting{
+					Enable: false,
+					Format: "srt",
 				},
 			},
-		}
+		},
+	}
 
-		path = filepath.Join(basepath, "config.yaml")
+	config := Config{
+		Path: path,
+	}
 
-		file, err := os.ReadFile(path)
-		if err != nil {
-			if os.IsNotExist(err) {
-				file, err := os.Create(filepath.Join(basepath, "config.yaml"))
-				if err != nil {
-					e = fmt.Errorf("Error creating config file: %v", err)
-					return
-				}
-				file.Close()
+	if _, err := config.Read(); os.IsNotExist(err) {
+		config.Write(defaultConfig)
+	} else if err != nil {
+		return nil, err
+	}
 
-				e = Write()
-				return
-			}
-
-			e = fmt.Errorf("Error reading config file: %v", err)
-			return
-		}
-
-		if err := yaml.Unmarshal(file, &config); err != nil {
-			e = fmt.Errorf("Error unmarshaling file: %v", err)
-		}
-	})
-
-	return
+	return &config, nil
 }
 
-func Write() error {
-	if path == "" {
-		return fmt.Errorf("Config not initilized")
-	}
-
-	output, err := yaml.Marshal(&config)
+func (c *Config) Read() (*Data, error) {
+	file, err := os.ReadFile(c.Path)
 	if err != nil {
-		return fmt.Errorf("Error marshaling file: %v", err)
+		return nil, err
 	}
 
-	if err := os.WriteFile(path, output, 0644); err != nil {
-		return fmt.Errorf("Error writing config: %v", err)
+	var data Data
+	if err := yaml.Unmarshal(file, &data); err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (c *Config) Write(data Data) error {
+	output, err := yaml.Marshal(&data)
+	if err != nil {
+		return fmt.Errorf("Error marshaling file: %w", err)
+	}
+
+	if err := os.WriteFile(c.Path, output, 0644); err != nil {
+		return fmt.Errorf("Error writing config: %w", err)
 	}
 
 	return nil

@@ -14,13 +14,18 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/logging"
 )
 
-func Start(db *ent.Client) error {
+func Start(conf *config.Config, db *ent.Client) error {
+	c, err := conf.Read()
+	if err != nil {
+		return err
+	}
+
 	logger := logging.NewManagerLogger("routine")
 
 	routines := []struct {
 		name        string
 		description string
-		run         func(*ent.Client)
+		run         func(*config.Config, *ent.Client)
 	}{
 		{
 			name:        "Media",
@@ -56,23 +61,23 @@ func Start(db *ent.Client) error {
 		}
 	}
 
-	ticker := time.NewTicker(config.Config().Routine.Delay)
+	ticker := time.NewTicker(c.Routine.Delay)
 	defer ticker.Stop()
 
-	run(db, routines)
+	run(conf, db, routines)
 
 	for {
 		select {
 		case <-ticker.C:
-			run(db, routines)
+			run(conf, db, routines)
 		}
 	}
 }
 
-func run(db *ent.Client, routines []struct {
+func run(conf *config.Config, db *ent.Client, routines []struct {
 	name        string
 	description string
-	run         func(*ent.Client)
+	run         func(*config.Config, *ent.Client)
 }) {
 	logger := logging.NewManagerLogger("routine")
 
@@ -97,7 +102,7 @@ func run(db *ent.Client, routines []struct {
 
 		logger.Info("running routine")
 
-		routine.run(db)
+		routine.run(conf, db)
 
 		logger.Info("routine completed")
 

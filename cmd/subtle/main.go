@@ -2,41 +2,39 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/nandesh-dev/subtle/internal/routine"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/ent"
 )
 
-func initilize() error {
+func main() {
 	configDirectoryPath := os.Getenv("CONFIG_DIRECTORY")
 	if configDirectoryPath == "" {
-		return fmt.Errorf("CONFIG_DIRECTORY environment variable not present")
+		log.Fatal("CONFIG_DIRECTORY environment variable not present")
 	}
 
-	if err := config.Init(configDirectoryPath); err != nil {
-		return fmt.Errorf("Failed to initilize config: %v", err)
-	}
-
-	return nil
-}
-
-func main() {
-	if err := initilize(); err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := ent.Open(config.Config().Database.Path)
+	config, err := config.Open(filepath.Join(configDirectoryPath, "config.yaml"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Cannot open config", err)
+	}
+
+	c, err := config.Read()
+	if err != nil {
+		log.Fatal("Cannot read config", err)
+	}
+
+	db, err := ent.Open(c.Database.Path)
+	if err != nil {
+		log.Fatal("Cannot open database", err)
 	}
 
 	if err := db.Schema.Create(context.Background()); err != nil {
-		log.Fatal(err)
+		log.Fatal("Cannot migrate database", err)
 	}
 
-	routine.Start(db)
+	routine.Start(config, db)
 }

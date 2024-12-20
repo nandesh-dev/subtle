@@ -18,10 +18,16 @@ import (
 	"golang.org/x/text/language"
 )
 
-func Run(db *ent.Client) {
+func Run(conf *config.Config, db *ent.Client) {
 	logger := logging.NewRoutineLogger("extract")
 
-	for _, mediaDirectoryConfig := range config.Config().MediaDirectories {
+	c, err := conf.Read()
+	if err != nil {
+		logger.Error("cannot read config", "err", err)
+		return
+	}
+
+	for _, mediaDirectoryConfig := range c.MediaDirectories {
 		if !mediaDirectoryConfig.Extraction.Enable {
 			continue
 		}
