@@ -5,13 +5,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Routine holds the schema definition for the Routine entity.
-type Routine struct {
+// Job holds the schema definition for the Job entity.
+type Job struct {
 	ent.Schema
 }
 
-// Fields of the Routine.
-func (Routine) Fields() []ent.Field {
+// Fields of the Job.
+func (Job) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("description"),
@@ -20,7 +20,7 @@ func (Routine) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Routine.
-func (Routine) Edges() []ent.Edge {
+// Edges of the Job.
+func (Job) Edges() []ent.Edge {
 	return nil
 }

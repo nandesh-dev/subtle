@@ -70,7 +70,7 @@ type Exporting struct {
 type Server struct {
 	Web      Web
 	Database Database
-	Routine  Routine
+	Job      Job
 	Logging  Logging
 }
 
@@ -85,7 +85,7 @@ type Database struct {
 	Path string
 }
 
-type Routine struct {
+type Job struct {
 	Delay time.Duration
 }
 
@@ -116,7 +116,7 @@ func Open(path string) (*Config, error) {
 			Database: Database{
 				Path: filepath.Join(basepath, "database.db"),
 			},
-			Routine: Routine{
+			Job: Job{
 				Delay: time.Minute * 15,
 			},
 			Logging: Logging{

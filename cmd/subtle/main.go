@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nandesh-dev/subtle/internal/routine"
+	"github.com/nandesh-dev/subtle/internal/jobs"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/ent"
 )
@@ -36,5 +36,5 @@ func main() {
 		log.Fatal("Cannot migrate database", err)
 	}
 
-	routine.Start(config, db)
+	jobs.Init(config, db)
 }
