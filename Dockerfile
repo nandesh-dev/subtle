@@ -42,11 +42,8 @@ COPY . .
 ENV GOPATH=$HOME/go
 ENV PATH=$PATH:$GOPATH/bin
 
-RUN go install github.com/bufbuild/buf/cmd/buf@latest
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
-
-RUN buf generate
+RUN sh ./scripts/entgen.sh
+RUN sh ./scripts/buf/gen.sh
 
 RUN CGO_ENABLED=1 GOOS=linux \
     go build  -a -tags netgo -ldflags '-extldflags "-static -L/usr/local/lib -ltesseract -lleptonica -lpng -lz"' ./cmd/subtle
