@@ -10,18 +10,23 @@ export default {
             },
         },
         colors: {
-            primary: '#2CBC74',
-            yellow: '#CBB148',
-            orange: '#CB7A48',
-            red: '#CB484F',
-            gray: {
-                830: '#D4D5D4',
-                520: '#838683',
-                190: '#2F3130',
-                120: '#1E1F1E',
-                80: '#191A19',
-                50: '#121212',
-            },
+          primary: {
+            1: "var(--primary-1-color)",
+            2: "var(--primary-2-color)",
+          },
+          secondary: {
+            1: "var(--secondary-1-color)",
+            2: "var(--secondary-2-color)",
+          },
+          neutral: {
+            1: "var(--neutral-1-color)",
+            2: "var(--neutral-2-color)",
+            3: "var(--neutral-3-color)",
+          },
+          text: {
+            1: "var(--text-1-color)",
+            2: "var(--text-2-color)",
+          },
         },
         borderRadius: {
             xxs: '0.3rem',
