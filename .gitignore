@@ -4,3 +4,5 @@ web/gen
 web/dist
 web/tsconfig.app.tsbuildinfo
 web/tsconfig.node.tsbuildinfo
+
+.pnpm-store
