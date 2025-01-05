@@ -2,8 +2,13 @@ import { useQuery } from '@connectrpc/connect-query'
 import { Routes, useNavigation } from './utils/navigation'
 import { Style } from './utils/style'
 import { getGlobalStatistics } from '../gen/proto/web/web-WebService_connectquery'
+import { Files, Jobs, Settings } from './section'
+import { Editor } from './section/editor'
 
 export function Main() {
+    const navigation = useNavigation()
+    const currentRoute = navigation?.useRoute()
+
     return (
         <section className="flex flex-col gap-md p-xl">
             <section className="flex flex-row justify-between">
@@ -13,6 +18,15 @@ export function Main() {
                 <NavigationBar />
             </section>
             <Stats />
+            {(currentRoute == Routes.Files ||
+                currentRoute == Routes.Editor) && <Files />}
+            {currentRoute == Routes.Settings && <Settings />}
+            {currentRoute == Routes.Jobs && <Jobs />}
+            {currentRoute == Routes.Editor && (
+                <section className="absolute bottom-0 left-0 right-0 top-0 bg-[rgba(0,0,0,0.1)] p-xl">
+                    <Editor />
+                </section>
+            )}
         </section>
     )
 }
