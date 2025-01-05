@@ -1,10 +1,10 @@
 version: v2
 plugins:
-  - local: protoc-gen-es
-    out: gen
-    opt: target=ts
-  - local: protoc-gen-connect-query
-    out: gen
-    opt: target=ts
+    - local: protoc-gen-es
+      out: gen
+      opt: target=ts
+    - local: protoc-gen-connect-query
+      out: gen
+      opt: target=ts
 inputs:
-  - directory: ../
+    - directory: ../

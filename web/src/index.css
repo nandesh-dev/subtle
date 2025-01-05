@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-input, textarea {
+input,
+textarea {
     border: none;
     background: none;
     padding: 0;
@@ -15,21 +16,21 @@ input, textarea {
 }
 
 :root {
-  --primary-1-color: #52B69A;
-  --primary-2-color: #76C893;
-  --secondary-1-color: #FFB235;
-  --secondary-2-color: #FCCB83;
-  --neutral-1-color: #F2F7F6;
-  --neutral-2-color: #E9F1EF;
-  --neutral-3-color: #DFEAE7;
-  --text-1-color: #001313;
-  --text-2-color: #FCFDFD;
-  
-  @media (prefers-color-scheme: dark) {
-    --neutral-1-color: #232424;
-    --neutral-2-color: #1C1D1D;
-    --neutral-3-color: #191A1A;
-    --text-1-color: #E4EBEB;
-    --text-2-color: #FCFDFD;
-  }
+    --primary-1-color: #52b69a;
+    --primary-2-color: #76c893;
+    --secondary-1-color: #ffb235;
+    --secondary-2-color: #fccb83;
+    --neutral-1-color: #f2f7f6;
+    --neutral-2-color: #e9f1ef;
+    --neutral-3-color: #dfeae7;
+    --text-1-color: #001313;
+    --text-2-color: #fcfdfd;
+
+    @media (prefers-color-scheme: dark) {
+        --neutral-1-color: #232424;
+        --neutral-2-color: #1c1d1d;
+        --neutral-3-color: #191a1a;
+        --text-1-color: #e4ebeb;
+        --text-2-color: #fcfdfd;
+    }
 }
