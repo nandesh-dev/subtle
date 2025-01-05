@@ -1,4 +1,4 @@
-FROM ubuntu:latest AS build-stage
+FROM ubuntu:latest AS backend-build-stage
 
 
 # Build tools and dependencies
@@ -35,7 +35,7 @@ RUN make
 RUN make install
 
 
-# Subtle backend static build
+# Subtle static build
 WORKDIR /build/subtle
 COPY . .
 
@@ -48,16 +48,6 @@ RUN sh ./scripts/buf/gen.sh
 RUN CGO_ENABLED=1 GOOS=linux \
     go build  -a -tags netgo -ldflags '-extldflags "-static -L/usr/local/lib -ltesseract -lleptonica -lpng -lz"' ./cmd/subtle
 
-# Subtle frontend build
-WORKDIR /build/subtle/web
-
-RUN wget -qO- https://get.pnpm.io/install.sh | bash -
-RUN . /root/.bashrc && \
-  pnpm env use --global lts && \
-  pnpm install && \
-  npx buf generate && \
-  pnpm run build
-
 
 # Empty volume mount points
 RUN mkdir /volumes
@@ -66,23 +56,40 @@ RUN mkdir /volumes/config
 
 
 
+FROM node:22-alpine AS frontend-build-stage
+
+
+RUN corepack enable pnpm
+
+WORKDIR /build/subtle
+COPY ./web .
+
+# Subtle build
+RUN pnpm i
+RUN npx buf generate
+RUN pnpm run build
+
+
+
 FROM scratch
 
 
-# Binaries
-COPY --from=build-stage /build/subtle/subtle /subtle
-COPY --from=build-stage /build/subtle/web/dist /public
+# Subtle Backend binary
+COPY --from=backend-build-stage /build/subtle/subtle /subtle
 
-COPY --from=build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
-COPY --from=build-stage /build/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
+# Subtle Frontend files
+COPY --from=frontend-build-stage /build/subtle/dist /public
 
+# FFMpeg binaries
+COPY --from=backend-build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=backend-build-stage /build/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
 # OCR Language data
-COPY --from=build-stage /usr/share/tesseract-ocr/5/tessdata/eng.traineddata /usr/local/share/tessdata/eng.traineddata
+COPY --from=backend-build-stage /usr/share/tesseract-ocr/5/tessdata/eng.traineddata /usr/local/share/tessdata/eng.traineddata
 
 
 # Volume mounts
-COPY --from=build-stage /volumes/media /media
-COPY --from=build-stage /volumes/config /config
+COPY --from=backend-build-stage /volumes/media /media
+COPY --from=backend-build-stage /volumes/config /config
 
 CMD ["/subtle"]
