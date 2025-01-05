@@ -64,17 +64,23 @@ function NavigationBar() {
 }
 
 function Stats() {
-    const { data: globalStatistics } = useQuery(getGlobalStatistics, {})
+    const { data: globalStatistics, isLoading } = useQuery(
+        getGlobalStatistics,
+        {}
+    )
 
-    const Stat = (data: { name: string; value?: number; total?: number }) => {
-        const value = data.value != undefined ? data.value : '..'
-        const total = data.total != undefined ? data.total : '..'
+    const Stat = (data: { name: string; value?: number }) => {
+        if (isLoading) {
+            return (
+                <div className="h-[8rem] w-full max-w-[16rem] animate-pulse rounded-sm bg-neutral-2" />
+            )
+        }
 
         return (
-            <div className="flex flex-col">
+            <div className="flex h-[8rem] w-full max-w-[16rem] flex-col">
                 <p className="text-lg text-text-1">{data.name}</p>
                 <p className="text-2xl font-light text-text-1">
-                    {value}/{total}
+                    {data?.value}/{globalStatistics?.Total}
                 </p>
             </div>
         )
@@ -82,21 +88,9 @@ function Stats() {
 
     return (
         <section className="flex flex-row justify-center gap-2xl p-2xl">
-            <Stat
-                name="Exported"
-                value={globalStatistics?.Exported}
-                total={globalStatistics?.Total}
-            />
-            <Stat
-                name="Formated"
-                value={globalStatistics?.Formated}
-                total={globalStatistics?.Total}
-            />
-            <Stat
-                name="Extracted"
-                value={globalStatistics?.Extracted}
-                total={globalStatistics?.Total}
-            />
+            <Stat name="Exported" value={globalStatistics?.Exported} />
+            <Stat name="Formated" value={globalStatistics?.Formated} />
+            <Stat name="Extracted" value={globalStatistics?.Extracted} />
         </section>
     )
 }
