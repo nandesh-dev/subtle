@@ -6,7 +6,7 @@ import { Navigation, NavigationProvider } from './utils/navigation'
 import { API, APIProvider } from './utils/api'
 
 const navigation = new Navigation()
-const api = new API({ enableMockTransport: true })
+const api = new API({ enableMockTransport: import.meta.env.MODE == "development" })
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
