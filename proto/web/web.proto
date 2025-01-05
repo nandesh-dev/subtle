@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package web;
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/web";
+
+service WebService {
+  rpc GetGlobalStatistics(GetGlobalStatisticsRequest) returns (GetGlobalStatisticsResponse);
+}
+
+message GetGlobalStatisticsRequest {}
+
+message GetGlobalStatisticsResponse {
+  int32 Exported = 1;
+  int32 Formated = 2;
+  int32 Extracted = 3;
+  int32 Total = 4;
+}
