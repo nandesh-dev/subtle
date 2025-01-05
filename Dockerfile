@@ -83,7 +83,7 @@ FROM scratch
 COPY --from=backend-build-stage /build/subtle/subtle /subtle
 
 # Subtle Frontend files
-COPY --from=frontend-build-stage /build/subtle/web/dist /public
+COPY --from=frontend-build-stage /build/web/dist /public
 
 # FFMpeg binaries
 COPY --from=backend-build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
