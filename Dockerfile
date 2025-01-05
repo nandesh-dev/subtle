@@ -61,6 +61,8 @@ FROM node:22-alpine AS frontend-build-stage
 
 RUN corepack enable pnpm
 
+ENV HOME=/root
+
 WORKDIR /build/subtle
 COPY ./web .
 
