@@ -66,24 +66,7 @@ RUN mkdir /volumes/config
 
 
 
-FROM alpine:latest AS user-stage
-
-# Setup user and group
-ENV UID=1000
-ENV GID=1000
-
-RUN addgroup -g $GID docker
-RUN adduser -S -u $UID -G docker subtle
-
-
-
 FROM scratch
-
-# User and group
-COPY --from=user-stage /etc/passwd /etc/passwd
-COPY --from=user-stage /etc/group /etc/group
-
-USER subtle:docker
 
 
 # Binaries
