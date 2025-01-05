@@ -63,7 +63,10 @@ RUN corepack enable pnpm
 
 ENV HOME=/root
 
-WORKDIR /build/subtle
+WORKDIR /build/proto
+COPY ./proto .
+
+WORKDIR /build/web
 COPY ./web .
 
 # Subtle build
@@ -80,7 +83,7 @@ FROM scratch
 COPY --from=backend-build-stage /build/subtle/subtle /subtle
 
 # Subtle Frontend files
-COPY --from=frontend-build-stage /build/subtle/dist /public
+COPY --from=frontend-build-stage /build/subtle/web/dist /public
 
 # FFMpeg binaries
 COPY --from=backend-build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
