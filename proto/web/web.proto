@@ -5,7 +5,43 @@ package web;
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/web";
 
 service WebService {
+  rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
+  rpc GetSubtitle(GetSubtitleRequest) returns (GetSubtitleResponse);
+  rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);
+  rpc GetMediaDirectories(GetMediaDirectoriesRequest) returns (GetMediaDirectoriesResponse);
   rpc GetGlobalStatistics(GetGlobalStatisticsRequest) returns (GetGlobalStatisticsResponse);
+}
+
+message GetSubtitleRequest {
+  int32 id = 1;
+}
+
+message GetSubtitleResponse {
+  string name = 1;
+}
+
+message GetVideoRequest {
+  int32 id = 1;
+}
+
+message GetVideoResponse {
+  string filepath = 1;
+  repeated int32 subtitle_ids = 2;
+}
+
+message GetDirectoryRequest {
+  string path = 1;
+}
+
+message GetDirectoryResponse {
+  repeated string children_directory_names = 1;
+  repeated int32 video_ids = 2;
+}
+
+message GetMediaDirectoriesRequest {}
+
+message GetMediaDirectoriesResponse {
+  repeated string paths = 1;
 }
 
 message GetGlobalStatisticsRequest {}
