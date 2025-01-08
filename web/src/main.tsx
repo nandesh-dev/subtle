@@ -2,15 +2,14 @@ import { useQuery } from '@connectrpc/connect-query'
 import { Routes, useNavigation } from './utils/navigation'
 import { Style } from './utils/style'
 import { getGlobalStatistics } from '../gen/proto/web/web-WebService_connectquery'
-import { Files, Jobs, Settings } from './section'
-import { Editor } from './section/editor'
+import { Editor, Files, Jobs, Settings } from './section'
 
 export function Main() {
     const navigation = useNavigation()
     const currentRoute = navigation?.useRoute()
 
     return (
-        <section className="flex flex-col gap-md p-xl">
+        <section className="grid grid-rows-[auto_auto_1fr] gap-md p-xl h-dvh">
             <section className="flex flex-row justify-between">
                 <section>
                     <h1 className="text-xl text-text-1">Subtle</h1>
@@ -55,7 +54,7 @@ function NavigationBar() {
             {NavigationButtons.map(({ route, name }) => {
                 return (
                     <button
-                        className="rounded-xl px-xl py-md text-lg"
+                        className="rounded-xl px-xl py-md text-md"
                         style={
                             route == currentRoute
                                 ? {

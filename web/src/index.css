@@ -15,6 +15,10 @@ textarea {
     -moz-appearance: none;
 }
 
+button {
+  text-align: start;
+}
+
 :root {
     --primary-1-color: #52b69a;
     --primary-2-color: #76c893;
