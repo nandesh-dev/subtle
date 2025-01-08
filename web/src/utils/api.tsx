@@ -23,6 +23,70 @@ export class API {
         if (options?.enableMockTransport) {
             this.rpcTransport = createRouterTransport(({ service }) => {
                 service(WebService, {
+                    getSubtitle({ id }) {
+                        let name = 'English'
+                        switch (id) {
+                            case 0:
+                                name = 'Forced English'
+                                break
+                            case 1:
+                                name = 'Japanese'
+                                break
+                            case 2:
+                                name = 'Full English'
+                                break
+                        }
+
+                        return { name }
+                    },
+                    getVideo({ id }) {
+                        let filepath = ''
+                        switch (id) {
+                            case 0:
+                                filepath =
+                                    '/media/series/Horimiya/Season 1/Horimiya - S01E01 - A Tiny Happenstance Bluray-1080p.mkv'
+                                break
+                            case 1:
+                                filepath =
+                                    '/media/series/Horimiya/Season 1/Horimiya - S01E02 - You Wear More Than One Face Bluray-1080p.mkv'
+                                break
+                            case 2:
+                                filepath =
+                                    "/media/series/Horimiya/Season 1/Horimiya - S01E03 - That's Why It's Okay Bluray-1080p.mkv"
+                                break
+                            case 3:
+                                filepath =
+                                    '/media/series/Horimiya/Season 1/Horimiya - S01E04 - Everybody Loves Somebody Bluray-1080p.mkv'
+                                break
+                        }
+
+                        return { filepath, subtitleIds: [0, 1, 2] }
+                    },
+                    getDirectory({ path }) {
+                        if (path == '/media/series') {
+                            return {
+                                childrenDirectoryNames: ['Horimiya'],
+                            }
+                        }
+
+                        if (path == '/media/series/Horimiya') {
+                            return {
+                                childrenDirectoryNames: [
+                                    'Season 1',
+                                    'Season 2',
+                                ],
+                            }
+                        }
+
+                        return {
+                            videoIds: [0, 1, 2, 3],
+                        }
+                    },
+                    getMediaDirectories() {
+                        return {
+                            paths: ['/media/series'],
+                        }
+                    },
                     getGlobalStatistics() {
                         return {
                             Exported: 92,
