@@ -123,5 +123,10 @@ export function NavigationProvider({
 }
 
 export function useNavigation() {
-    return useContext(NavigationContext)
+    let navigation = useContext(NavigationContext)
+    if (navigation == null) {
+      throw new Error("Navigation is not defined yet!")
+    }
+
+    return navigation
 }
