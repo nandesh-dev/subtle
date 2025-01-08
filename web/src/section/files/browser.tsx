@@ -52,37 +52,56 @@ function DirectoryView({ path }: { path: string }) {
     return (
         <div className="relative h-full overflow-hidden rounded-md bg-neutral-2 p-xl">
             <section className="relative flex h-full flex-col gap-lg overflow-y-scroll">
-                {directoryNames?.length ? (
+                {!isSuccess ? (
                     <section className="flex flex-col gap-md">
-                        <h2 className="text-lg text-text-1">Folders</h2>
+                        <div className="h-xl w-[12rem] animate-pulse rounded-sm bg-neutral-1" />
                         <section className="flex flex-col gap-sm">
-                            {directoryNames?.map((directoryName) => {
-                                return (
-                                    <Directory
-                                        key={directoryName}
-                                        path={filepath.join(
-                                            path,
-                                            directoryName
-                                        )}
-                                        displayEntirePath={isRootDirectory}
-                                    />
-                                )
-                            })}
+                            <div className="h-2xl w-full animate-pulse rounded-sm bg-neutral-1" />
+                            <div className="h-2xl w-full animate-pulse rounded-sm bg-neutral-1" />
                         </section>
                     </section>
-                ) : null}
-                {videoIDs?.length ? (
-                    <section className="flex flex-col gap-md">
-                        <h2 className="text-lg text-text-1">Files</h2>
-                        <section className="flex flex-col gap-sm">
-                            {videoIDs?.map((videoIDs) => {
-                                return <File key={videoIDs} id={videoIDs} />
-                            })}
-                        </section>
-                    </section>
-                ) : null}
+                ) : (
+                    <>
+                        {directoryNames.length ? (
+                            <section className="flex flex-col gap-md">
+                                <h2 className="text-lg text-text-1">Folders</h2>
+                                <section className="flex flex-col gap-sm">
+                                    {directoryNames.map((directoryName) => {
+                                        return (
+                                            <Directory
+                                                key={directoryName}
+                                                path={filepath.join(
+                                                    path,
+                                                    directoryName
+                                                )}
+                                                displayEntirePath={
+                                                    isRootDirectory
+                                                }
+                                            />
+                                        )
+                                    })}
+                                </section>
+                            </section>
+                        ) : null}
+                        {videoIDs.length ? (
+                            <section className="flex flex-col gap-md">
+                                <h2 className="text-lg text-text-1">Files</h2>
+                                <section className="flex flex-col gap-sm">
+                                    {videoIDs.map((videoIDs) => {
+                                        return (
+                                            <File
+                                                key={videoIDs}
+                                                id={videoIDs}
+                                            />
+                                        )
+                                    })}
+                                </section>
+                            </section>
+                        ) : null}
+                    </>
+                )}
             </section>
-            <div className="absolute bottom-0 right-0 bg-neutral-2 p-md rounded-tl-md">
+            <div className="absolute bottom-0 right-0 rounded-tl-md bg-neutral-2 p-md">
                 <p className="text-xs text-text-1">{path}</p>
             </div>
         </div>
@@ -105,11 +124,11 @@ function FileView({ id }: { id: number }) {
                     </>
                 ) : (
                     getVideoQuery.data.subtitleIds.map((subtitleID) => {
-                      return <Subtitle key={subtitleID} id={subtitleID}/>
+                        return <Subtitle key={subtitleID} id={subtitleID} />
                     })
                 )}
             </section>
-            <div className="absolute bottom-0 right-0 bg-neutral-2 p-md rounded-tl-md">
+            <div className="absolute bottom-0 right-0 rounded-tl-md bg-neutral-2 p-md">
                 <p className="text-xs text-text-1">{id}</p>
             </div>
         </div>
@@ -117,7 +136,7 @@ function FileView({ id }: { id: number }) {
 }
 
 function Subtitle({ id }: { id: number }) {
-const navigation = useNavigation()
+    const navigation = useNavigation()
 
     const getSubtitleQuery = useQuery(getSubtitle, {
         id,
@@ -144,7 +163,7 @@ const navigation = useNavigation()
                 <p className="text-sm text-text-1">
                     {getSubtitleQuery.data.name}
                 </p>
-                <div className="text-text-1 text-xs">Info</div>
+                <div className="text-xs text-text-1">Info</div>
             </section>
         </button>
     )
