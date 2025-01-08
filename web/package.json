@@ -15,8 +15,10 @@
         "@connectrpc/connect-query": "^2.0.1",
         "@connectrpc/connect-web": "^2.0.0",
         "@tanstack/react-query": "^5.62.14",
+        "@types/path-browserify": "^1.0.3",
         "google-protobuf": "^3.21.4",
         "grpc-web": "^1.5.0",
+        "path-browserify": "^1.0.1",
         "react": "^19.0.0",
         "react-dom": "^19.0.0"
     },
