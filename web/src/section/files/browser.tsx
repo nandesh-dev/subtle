@@ -129,7 +129,13 @@ function FileView({ id }: { id: number }) {
                 )}
             </section>
             <div className="absolute bottom-0 right-0 rounded-tl-md bg-neutral-2 p-md">
-                <p className="text-xs text-text-1">{id}</p>
+                {!getVideoQuery.isSuccess ? (
+                    <div className="h-lg animate-pulse bg-neutral-1 rounded-sm w-[24rem]"/>
+                ) : (
+                    <p className="text-xs text-text-1">
+                        {filepath.basename(getVideoQuery.data.filepath)}
+                    </p>
+                )}
             </div>
         </div>
     )
