@@ -9,8 +9,8 @@ export function Main() {
     const currentRoute = navigation?.useRoute()
 
     return (
-        <section className="grid grid-rows-[auto_auto_1fr] gap-md p-xl h-dvh">
-            <section className="flex flex-row justify-between">
+        <section className="grid grid-rows-[auto_auto_1fr] gap-md p-xl h-dvh w-dvw">
+            <section className="flex flex-row justify-between max-w-full">
                 <section>
                     <h1 className="text-xl text-text-1">Subtle</h1>
                 </section>
@@ -100,7 +100,7 @@ function Stats() {
     }
 
     return (
-        <section className="flex flex-row justify-center gap-2xl p-2xl">
+        <section className="flex flex-row justify-center gap-2xl  py-2xl">
             <Stat name="Exported" value={globalStatistics?.Exported} />
             <Stat name="Formated" value={globalStatistics?.Formated} />
             <Stat name="Extracted" value={globalStatistics?.Extracted} />
