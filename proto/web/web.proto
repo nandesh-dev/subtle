@@ -2,14 +2,33 @@ syntax = "proto3";
 
 package web;
 
+import "google/protobuf/duration.proto";
+
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/web";
 
 service WebService {
+  rpc GetSubtitleSegments(GetSubtitleSegmentsRequest) returns (GetSubtitleSegmentsResponse);
   rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
   rpc GetSubtitle(GetSubtitleRequest) returns (GetSubtitleResponse);
   rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);
   rpc GetMediaDirectories(GetMediaDirectoriesRequest) returns (GetMediaDirectoriesResponse);
   rpc GetGlobalStatistics(GetGlobalStatisticsRequest) returns (GetGlobalStatisticsResponse);
+}
+
+message GetSubtitleSegmentsRequest {
+  int32 id = 1;
+}
+
+message GetSubtitleSegmentsResponse {
+  repeated Segment segments = 1;
+}
+
+message Segment {
+  int32 id = 4;
+  google.protobuf.Duration start = 1;
+  google.protobuf.Duration end = 2;
+
+  string text = 3;
 }
 
 message GetSubtitleRequest {
@@ -18,6 +37,7 @@ message GetSubtitleRequest {
 
 message GetSubtitleResponse {
   string name = 1;
+  int32 video_id = 2;
 }
 
 message GetVideoRequest {

@@ -23,6 +23,42 @@ export class API {
         if (options?.enableMockTransport) {
             this.rpcTransport = createRouterTransport(({ service }) => {
                 service(WebService, {
+                    getSubtitleSegments({ id }) {
+                        return {
+                            segments: [
+                                {
+                                    id: 0,
+                                    start: { seconds: BigInt(0) },
+                                    end: { seconds: BigInt(10) },
+                                    text: 'Hey',
+                                },
+                                {
+                                    id: 1,
+                                    start: { seconds: BigInt(10) },
+                                    end: { seconds: BigInt(35) },
+                                    text: 'Whatsup',
+                                },
+                                {
+                                    id: 2,
+                                    start: { seconds: BigInt(35) },
+                                    end: { seconds: BigInt(40) },
+                                    text: 'Nothing',
+                                },
+                                {
+                                    id: 3,
+                                    start: { seconds: BigInt(40) },
+                                    end: { seconds: BigInt(60) },
+                                    text: '[ Birds Singing ]',
+                                },
+                                {
+                                    id: 4,
+                                    start: { seconds: BigInt(60) },
+                                    end: { seconds: BigInt(65) },
+                                    text: `This are segments of subtitle id ${id}`,
+                                },
+                            ],
+                        }
+                    },
                     getSubtitle({ id }) {
                         let name = 'English'
                         switch (id) {
