@@ -9,6 +9,14 @@ type APIOptions = {
     enableMockTransport?: boolean
 }
 
+function delay(time: number) {
+    return new Promise<void>((resolve, _) => {
+        setTimeout(() => {
+            resolve()
+        }, time)
+    })
+}
+
 export class API {
     public rpcTransport: Transport
     public tanstackQueryClient: QueryClient
@@ -23,6 +31,58 @@ export class API {
         if (options?.enableMockTransport) {
             this.rpcTransport = createRouterTransport(({ service }) => {
                 service(WebService, {
+                    async updateConfig({ updatedConfig: _ }) {
+                        await delay(1000)
+                        return {}
+                    },
+                    getConfig() {
+                        return {
+                            config: `watch_directories:
+    - path: /media
+      extraction:
+        enable: true
+        raw_stream_title_keywords:
+            - Full
+            - Dialogue
+        formats:
+            ass:
+                enable: true
+                languages:
+                    - en
+            pgs:
+                enable: true
+                languages:
+                    - en
+      formating:
+        enable: true
+        text_based_subtitle:
+            charactor_mappings: []
+        image_based_subtitle:
+            charactor_mappings:
+                - language: en
+                  mappings:
+                    - from: '|'
+                      to: I
+      exporting:
+        enable: true
+        format: srt
+server:
+    web:
+        port: 3000
+        cor_origins: []
+        enable_grpc_reflection: false
+        serve_directory: /public
+    database:
+        path: testing/config/database.db
+    job:
+        delay: 15m0s
+    logging:
+        path: testing/config/logs.log
+        console_level: DEBUG
+        file_level: INFO
+`,
+                        }
+                    },
                     getSubtitleSegments({ id }) {
                         return {
                             segments: [

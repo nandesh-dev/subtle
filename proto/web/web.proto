@@ -7,12 +7,26 @@ import "google/protobuf/duration.proto";
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/web";
 
 service WebService {
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+  rpc UpdateConfig(UpdateConfigRequest) returns (UpdateConfigResponse);
   rpc GetSubtitleSegments(GetSubtitleSegmentsRequest) returns (GetSubtitleSegmentsResponse);
   rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
   rpc GetSubtitle(GetSubtitleRequest) returns (GetSubtitleResponse);
   rpc GetDirectory(GetDirectoryRequest) returns (GetDirectoryResponse);
   rpc GetMediaDirectories(GetMediaDirectoriesRequest) returns (GetMediaDirectoriesResponse);
   rpc GetGlobalStatistics(GetGlobalStatisticsRequest) returns (GetGlobalStatisticsResponse);
+}
+
+message UpdateConfigRequest {
+  string updated_config = 1;
+}
+
+message UpdateConfigResponse {}
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string config = 1;
 }
 
 message GetSubtitleSegmentsRequest {
