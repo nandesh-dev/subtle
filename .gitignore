@@ -6,3 +6,5 @@ web/tsconfig.app.tsbuildinfo
 web/tsconfig.node.tsbuildinfo
 
 .pnpm-store
+
+testing/
