@@ -3,17 +3,25 @@ import { Routes, useNavigation } from './utils/navigation'
 import { Style } from './utils/style'
 import { getGlobalStatistics } from '../gen/proto/web/web-WebService_connectquery'
 import { Editor, Files, Jobs, Settings } from './section'
+import { useIsMutating } from '@tanstack/react-query'
 
 export function Main() {
     const navigation = useNavigation()
-    const currentRoute = navigation?.useRoute()
+    const currentRoute = navigation.useRoute()
+
+    const isMutating = useIsMutating()
 
     return (
         <section className="grid h-dvh w-dvw grid-rows-[auto_auto_1fr] gap-md p-xl">
-            <section className="flex max-w-full flex-row justify-between">
+            <section className="flex max-w-full flex-row items-center gap-xl">
                 <section>
                     <h1 className="text-xl text-text-1">Subtle</h1>
                 </section>
+                {isMutating ? (
+                    <div className="h-xs w-full animate-loader rounded-sm bg-gradient-to-r from-primary-2 to-primary-2 bg-[length:60%_100%] bg-no-repeat" />
+                ) : (
+                    <div className="h-xs w-full" />
+                )}
                 <NavigationBar />
             </section>
             <Stats />
@@ -50,7 +58,7 @@ function NavigationBar() {
     const currentRoute = navigation?.useRoute()
 
     return (
-        <section className="rounded-xl bg-neutral-2">
+        <section className="flex flex-row rounded-xl bg-neutral-2">
             {NavigationButtons.map(({ route, name }) => {
                 return (
                     <button

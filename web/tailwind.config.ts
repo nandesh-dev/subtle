@@ -4,6 +4,22 @@ export default {
     content: ['./index.html', './src/**/*.{ts,tsx}'],
     theme: {
         extend: {
+            animation: {
+                loader: 'loader 3s infinite',
+            },
+            keyframes: {
+                loader: {
+                    '0%': {
+                        backgroundPosition: '-150% 0, -150% 0',
+                    },
+                    '66%': {
+                        backgroundPosition: '251% 0, -150% 0',
+                    },
+                    '100%': {
+                        backgroundPosition: '251% 0, 251% 0',
+                    },
+                },
+            },
             fontFamily: {
                 sans: [
                     '"Sora"',
