@@ -157,9 +157,9 @@ function Subtitle({ id }: { id: number }) {
             className="group grid min-h-2xl grid-cols-[0.25rem_1fr] items-center gap-md rounded-sm bg-neutral-1 p-md"
             onClick={() => {
                 navigation?.navigate(
-                    Routes.Files,
+                    Routes.Editor,
                     new URLSearchParams({
-                        video_id: id.toString(),
+                        subtitle_id: id.toString(),
                     })
                 )
             }}
