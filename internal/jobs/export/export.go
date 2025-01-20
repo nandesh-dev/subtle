@@ -139,7 +139,7 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 						return err
 					}
 
-          defer file.Close()
+					defer file.Close()
 
 					if err := sub.Write(srt.NewWriter(file)); err != nil {
 						logger.Error("cannot write subtitle to file", "err", err)
