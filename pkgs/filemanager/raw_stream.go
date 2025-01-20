@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
-	"github.com/nandesh-dev/subtle/pkgs/warning"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"golang.org/x/text/language"
@@ -52,7 +51,6 @@ func (s *RawStream) Title() string {
 
 func (v *VideoFile) RawStreams() (*[]RawStream, error) {
 	rawResultData, err := ffmpeg.Probe(v.path)
-	warnings := warning.NewWarningList()
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to probe file stats: %v", err)
@@ -105,10 +103,7 @@ func (v *VideoFile) RawStreams() (*[]RawStream, error) {
 			rawLanguage, langaugeExist := tags["language"].(string)
 
 			if langaugeExist {
-				langTag, err := language.Parse(rawLanguage)
-				if err != nil {
-					warnings.AddWarning(fmt.Errorf("Invalid language in probe JSON: %v; %v", rawLanguage, rawStreamData))
-				} else {
+				if langTag, err := language.Parse(rawLanguage); err == nil {
 					lang = langTag
 				}
 			}
