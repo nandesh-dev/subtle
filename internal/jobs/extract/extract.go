@@ -3,6 +3,7 @@ package extract
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"image/png"
 	"log/slog"
 	"strings"
@@ -10,12 +11,13 @@ import (
 	"github.com/nandesh-dev/subtle/generated/ent"
 	subtitle_schema "github.com/nandesh-dev/subtle/generated/ent/subtitle"
 	video_schema "github.com/nandesh-dev/subtle/generated/ent/video"
-	"github.com/nandesh-dev/subtle/pkgs/ass"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
 	"github.com/nandesh-dev/subtle/pkgs/logging"
-	"github.com/nandesh-dev/subtle/pkgs/pgs"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
+	"github.com/nandesh-dev/subtle/pkgs/subtitle/ass"
+	"github.com/nandesh-dev/subtle/pkgs/subtitle/pgs"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"golang.org/x/text/language"
 )
 
@@ -41,7 +43,9 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 			logger := logger.With("video_filepath", videoEntry.Filepath)
 
 			// Skip if a subtitle is already extracted for the video
-			extractedSubtitleCount, err := videoEntry.QuerySubtitles().Where(subtitle_schema.Extracted(true)).Count(context.Background())
+			extractedSubtitleCount, err := videoEntry.QuerySubtitles().
+				Where(subtitle_schema.StageNEQ(subtitle_schema.StageDetected)).
+				Count(context.Background())
 			if err != nil {
 				logger.Error("cannot count extracted subtitle in database", "err", err)
 				continue
@@ -123,21 +127,20 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 
 			logger = logger.With("subtitle_title", subtitleEntry.Title)
 
-			// Skip if the subtitle is currently being processing
-			if subtitleEntry.Processing {
-				logger.Info("skipping! subtitle is already being processed")
+			if subtitleEntry.IsProcessing {
+				logger.Warn("skipping! subtitle is already being processed")
 				continue
 			}
 
 			logger.Info("subtitle found, processing it")
 
-			if err := db.Subtitle.UpdateOne(subtitleEntry).SetProcessing(true).Exec(context.Background()); err != nil {
+			if err := db.Subtitle.UpdateOne(subtitleEntry).SetIsProcessing(true).Exec(context.Background()); err != nil {
 				logger.Error("cannot update subtitle processing status", "err", err)
 				continue
 			}
 
 			defer func() {
-				if err := db.Subtitle.UpdateOneID(subtitleEntry.ID).SetProcessing(false).Exec(context.Background()); err != nil {
+				if err := db.Subtitle.UpdateOneID(subtitleEntry.ID).SetIsProcessing(false).Exec(context.Background()); err != nil {
 					logger.Error("cannot update subtitle processing status", "err", err)
 				}
 			}()
@@ -162,32 +165,39 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 				subtitleEntry.Title,
 			)
 
-			var sub subtitle.Subtitle
-
 			logger.Info("extracting subtitle from raw stream")
-
 			logger = logger.With("subtitle_format", subtitleEntry.ImportFormat)
 
+			formatString := "ass"
+			if format == subtitle.PGS {
+				formatString = "sup"
+			}
+
+			var subtitleBuffer, errorBuffer bytes.Buffer
+			ffmpeg.LogCompiledCommand = false
+			if err := ffmpeg.Input(rawStream.Filepath()).
+				Output("pipe:", ffmpeg.KwArgs{"map": fmt.Sprintf("0:%v", rawStream.Index()), "c:s": "copy", "f": formatString}).
+				WithOutput(&subtitleBuffer).
+				WithErrorOutput(&errorBuffer).
+				Run(); err != nil {
+				logger.Error("cannot extract subtitle from video", "err", err, "errorBuffer", errorBuffer.String())
+				continue
+			}
+
+			var parser subtitle.Parser
 			switch format {
 			case subtitle.ASS:
-				s, _, err := ass.ExtractFromRawStream(*rawStream)
-				if err != nil {
-					logger.Error("cannot extract subtitle", "err", err)
-					continue
-				}
-
-				sub = *s
+				parser = ass.NewParser()
 			case subtitle.PGS:
-				s, _, err := pgs.ExtractFromRawStream(*rawStream)
-				if err != nil {
-					logger.Error("cannot extract subtitle", "err", err)
-					continue
-				}
-
-				sub = *s
-
+				parser = pgs.NewParser()
 			default:
 				logger.Error("unsupported / invalid subtitle format")
+				continue
+			}
+
+			sub, err := parser.Parse(subtitleBuffer.Bytes())
+			if err != nil {
+				logger.Error("cannot parse subtitle", slog.String("format", subtitleEntry.ImportFormat), slog.Any("err", err))
 				continue
 			}
 
@@ -198,46 +208,57 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 			}
 
 			if err := func() error {
-				switch sub := sub.(type) {
-				case subtitle.TextSubtitle:
-					for _, segment := range sub.Segments() {
-						if err := tx.Segment.Create().
-							AddSubtitle(subtitleEntry).
-							SetStartTime(segment.Start()).
-							SetEndTime(segment.End()).
-							SetOriginalText(segment.Text()).
-							Exec(context.Background()); err != nil {
-							logger.Error("cannot add segment to subtitle", "err", err)
-							return err
-						}
-					}
-				case subtitle.ImageSubtitle:
-					for _, segment := range sub.Segments() {
-						imageDataBuffer := new(bytes.Buffer)
-						if err := png.Encode(imageDataBuffer, segment.Image()); err != nil {
-							logger.Error("cannot encode image to png", "err", err)
+				for _, cue := range sub.Cues {
+					cueEntry := tx.Cue.Create().
+						AddSubtitle(subtitleEntry).
+						SetTimestampStart(cue.Timestamp.Start).
+						SetTimestampEnd(cue.Timestamp.End)
+
+					for i, originalImage := range cue.OriginalImages {
+						var imageDataBuffer bytes.Buffer
+						if err := png.Encode(&imageDataBuffer, originalImage); err != nil {
+							logger.Error("cannot encode original image to png", "err", err)
 							return err
 						}
 
-						if err := tx.Segment.Create().
-							AddSubtitle(subtitleEntry).
-							SetStartTime(segment.Start()).
-							SetEndTime(segment.End()).
-							SetOriginalImage(imageDataBuffer.Bytes()).
-							Exec(context.Background()); err != nil {
-							logger.Error("cannot add segment to subtitle", "err", err)
+						originalImageEntry, err := tx.CueOriginalImage.Create().
+							SetPosition(int32(i)).
+							SetData(imageDataBuffer.Bytes()).
+							Save(context.Background())
+						if err != nil {
+							logger.Error("cannot save original image to database", "err", err)
 							return err
 						}
+
+						cueEntry.AddCueOriginalImages(originalImageEntry)
+					}
+
+					for i, content := range cue.Content {
+						contentSegment, err := tx.CueContentSegment.Create().
+							SetPosition(int32(i)).
+							SetText(content.Text).
+							Save(context.Background())
+						if err != nil {
+							logger.Error("cannot save content segment to database", "err", err)
+							return err
+						}
+
+						cueEntry.AddCueContentSegments(contentSegment)
+					}
+
+					if err := cueEntry.
+						Exec(context.Background()); err != nil {
+						logger.Error("cannot add cue to subtitle", "err", err)
+						return err
 					}
 				}
 
-				if err := tx.Subtitle.UpdateOne(subtitleEntry).SetExtracted(true).Exec(context.Background()); err != nil {
+				if err := tx.Subtitle.UpdateOne(subtitleEntry).SetStage(subtitle_schema.StageExtracted).Exec(context.Background()); err != nil {
 					logger.Error("cannot update subtitle to extracted", "err", err)
 					return err
 				}
 
 				logger.Info("subtitle extracted")
-
 				return nil
 			}(); err != nil {
 				if err := tx.Rollback(); err != nil {

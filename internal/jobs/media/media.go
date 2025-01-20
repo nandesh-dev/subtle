@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/nandesh-dev/subtle/generated/ent"
+	subtitle_schema "github.com/nandesh-dev/subtle/generated/ent/subtitle"
 	video_schema "github.com/nandesh-dev/subtle/generated/ent/video"
 	"github.com/nandesh-dev/subtle/pkgs/config"
 	"github.com/nandesh-dev/subtle/pkgs/filemanager"
@@ -85,6 +86,7 @@ func Run(logger *slog.Logger, conf *config.Config, db *ent.Client) {
 							Create().
 							SetTitle(title).
 							SetLanguage(rawStream.Language().String()).
+							SetStage(subtitle_schema.StageDetected).
 							SetImportFormat(subtitle.MapFormat(rawStream.Format())).
 							SetImportVideoStreamIndex(int32(rawStream.Index())).
 							AddVideo(videoEntry).

@@ -5,13 +5,11 @@ go 1.23.0
 toolchain go1.23.3
 
 require (
-	connectrpc.com/connect v1.17.0
 	entgo.io/ent v0.14.1
 	github.com/lmittmann/tint v1.0.5
 	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/u2takey/ffmpeg-go v0.5.0
 	golang.org/x/text v0.21.0
-	google.golang.org/protobuf v1.36.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.28.0
 )

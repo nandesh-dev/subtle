@@ -16,16 +16,12 @@ func (Subtitle) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title"),
 		field.String("language"),
-		field.Bool("processing").
-			Default(false),
-		field.Bool("extracted").
-			Default(false),
-		field.Bool("formated").
-			Default(false),
-		field.Bool("exported").
+		field.Enum("stage").
+			Values("detected", "extracted", "formated", "exported"),
+		field.Bool("is_processing").
 			Default(false),
 		field.Bool("import_is_external").
-			Optional(),
+			Default(false),
 		field.String("import_format").
 			Optional(),
 		field.Int32("import_video_stream_index").
@@ -40,7 +36,7 @@ func (Subtitle) Fields() []ent.Field {
 // Edges of the Subtitle.
 func (Subtitle) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("segments", Segment.Type),
+		edge.To("cues", Cue.Type),
 		edge.From("video", Video.Type).
 			Ref("subtitles"),
 	}

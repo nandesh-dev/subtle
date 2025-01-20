@@ -1,0 +1,184 @@
+package parser
+
+import (
+	"fmt"
+	"image/color"
+	"time"
+)
+
+type ObjectDefinitionSequenceFlag int
+
+const (
+	LastInObjectDefinitionSequence ObjectDefinitionSequenceFlag = iota
+	FirstInObjectDefinitionSequence
+	FirstAndLastInObjectDefinitionSequence
+)
+
+type ObjectDefinitionSegment struct {
+	objectId            int
+	objectVersionNumber int
+	sequenceFlag        ObjectDefinitionSequenceFlag
+	width               int
+	height              int
+	objectData          []byte
+}
+
+type PresentationCompositionState int
+
+const (
+	EpochStartPresentationCompositionState PresentationCompositionState = iota
+	AcquisitionStartPresentationCompositionState
+	NormalPresentationCompositionState
+)
+
+type PresentationCompositionObject struct {
+	objectId                         int
+	windowId                         int
+	objectCroppedFlag                bool
+	objectHorizontalPosition         int
+	objectVerticalPosition           int
+	objectCroppingHorizontalPosition int
+	objectCroppingVerticalPosition   int
+	objectCroppingWidth              int
+	objectCroppingHeight             int
+}
+
+type PresentationCompositionSegment struct {
+	width             int
+	height            int
+	state             PresentationCompositionState
+	paletteUpdateFlag bool
+	paletteId         int
+	objects           []PresentationCompositionObject
+}
+
+type PaletteDefinitionSegment struct {
+	paletteId            int
+	paletteVersionNumber int
+	paletteEntries       map[int]color.Color
+}
+
+type Window struct {
+	id                 int
+	horizontalPosition int
+	verticalPosition   int
+	width              int
+	height             int
+}
+
+type WindowDefinitionSegment struct {
+	windows []Window
+}
+
+type SegmentType int
+
+const (
+	PDSSegment SegmentType = iota
+	ODSSegment
+	PCSSegment
+	WDSSegment
+	ENDSegment
+)
+
+type Header struct {
+	pts         time.Duration
+	segmentType SegmentType
+	segmentSize int
+}
+
+type DisplaySet struct {
+	header                         Header
+	presentationCompositionSegment PresentationCompositionSegment
+	windowDefinitions              map[int]Window
+	paletteDefinitionSegments      map[int]PaletteDefinitionSegment
+	objectDefinitionSegments       map[int]ObjectDefinitionSegment
+}
+
+func NewDisplaySet() *DisplaySet {
+	return &DisplaySet{
+		paletteDefinitionSegments: make(map[int]PaletteDefinitionSegment),
+		windowDefinitions:         make(map[int]Window),
+		objectDefinitionSegments:  make(map[int]ObjectDefinitionSegment),
+	}
+}
+
+type Reader struct {
+	data      []byte
+	cursor    int
+	readLimit int
+}
+
+func NewReader(data []byte) *Reader {
+	return &Reader{
+		data:      data,
+		cursor:    0,
+		readLimit: -1,
+	}
+}
+
+func (r *Reader) SetReadLimit(limit int) {
+	r.readLimit = limit
+}
+
+func (r *Reader) RemoveReadLimit() {
+	r.readLimit = -1
+}
+
+func (r *Reader) RemainingLimit() int {
+	if r.readLimit == -1 {
+		return len(r.data) - r.cursor
+	}
+	return r.readLimit
+}
+
+func (r *Reader) SkipPastReadLimit() {
+	if r.readLimit == -1 {
+		return
+	}
+	r.cursor += r.readLimit
+	r.RemoveReadLimit()
+}
+
+func (r *Reader) RemainingBytes() int {
+	return len(r.data) - r.cursor - 1
+}
+
+func (r *Reader) ReachedEnd() bool {
+	return r.cursor >= len(r.data)
+}
+
+func (r *Reader) Read(count int) ([]byte, error) {
+	if count == 0 {
+		return make([]byte, 0), nil
+	}
+
+	if r.readLimit != -1 {
+		if count > r.readLimit {
+			buf, err := r.Read(r.readLimit)
+			if err != nil {
+				return make([]byte, 0), err
+			}
+
+			return append(buf, make([]byte, count-len(buf))...), nil
+		}
+
+		r.readLimit -= count
+	}
+
+	r.cursor += count
+
+	if r.cursor > len(r.data) {
+		return make([]byte, 0), fmt.Errorf("Read cursor out of bound")
+	}
+
+	return r.data[r.cursor-count : r.cursor], nil
+}
+
+func (r *Reader) ReadByte() (byte, error) {
+	bytes, err := r.Read(1)
+	if err != nil {
+		return 0x00, err
+	}
+
+	return bytes[0], nil
+}

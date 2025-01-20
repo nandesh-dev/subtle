@@ -9,30 +9,26 @@ import (
 )
 
 // Segment holds the schema definition for the Segment entity.
-type Segment struct {
+type Cue struct {
 	ent.Schema
 }
 
 // Fields of the Segment.
-func (Segment) Fields() []ent.Field {
+func (Cue) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("start_time").
+		field.Int64("timestamp_start").
 			GoType(time.Second),
-		field.Int64("end_time").
+		field.Int64("timestamp_end").
 			GoType(time.Second),
-		field.String("text").
-			Optional(),
-		field.String("original_text").
-			Optional(),
-		field.Bytes("original_image").
-			Optional(),
 	}
 }
 
 // Edges of the Segment.
-func (Segment) Edges() []ent.Edge {
+func (Cue) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("subtitle", Subtitle.Type).
-			Ref("segments"),
+			Ref("cues"),
+		edge.To("cue_content_segments", CueContentSegment.Type),
+		edge.To("cue_original_images", CueOriginalImage.Type),
 	}
 }
