@@ -4,7 +4,11 @@ services:
     image: nandeshdev/subtle:dev
     container_name: subtle
     environment:
-      - CONFIG_DIRECTORY=/config
+      - SUBTLE_CONFIG_FILEPATH=/config/config.yaml
+      - SUBTLE_DATABASE_FILEPATH=/config/database.db
+      - SUBTLE_LOG_FILEPATH=/config/logs.log
+      - SUBTLE_FILE_LOG_LEVEL=INFO
+      - SUBTLE_CONSOLE_LOG_LEVEL=ERROR
     volumes:
       - /<config_directory_path>:/config
       - /<media_directory_path>:/media
