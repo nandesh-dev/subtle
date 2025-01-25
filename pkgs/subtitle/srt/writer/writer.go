@@ -33,11 +33,8 @@ func (w *Writer) Write(sub *subtitle.Subtitle) error {
 		}
 
 		contentLine := ""
-		for i, contentSegment := range cue.Content {
-			contentLine = contentSegment.Text
-			if i != len(cue.Content)-1 {
-				contentLine += " "
-			}
+		for _, contentSegment := range cue.Content {
+			contentLine += contentSegment.Text
 		}
 		contentLine += "\n\n"
 

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -104,8 +105,13 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 
 						cue.Timestamp.End = time.Duration(float64(timestamp)*headerConfig.timer) + headerConfig.synchPoint
 					case TextField:
+            text := field
 						//TODO Proper extraction of text and parsing of styles
-						cue.Content = []subtitle.CueContentSegment{{Text: field}}
+            text = strings.ReplaceAll(text, "\\N", "\n")
+            text = strings.ReplaceAll(text, "\\n", "\n")
+            text = regexp.MustCompile(`\{[^}]*\}`).ReplaceAllString(text, "")
+
+						cue.Content = []subtitle.CueContentSegment{{Text: text}}
 					}
 				}
 
