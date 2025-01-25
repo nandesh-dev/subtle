@@ -42,7 +42,7 @@ COPY . .
 ENV GOPATH=$HOME/go
 ENV PATH=$PATH:$GOPATH/bin
 
-RUN sh ./scripts/entgen.sh
+RUN sh ./scripts/ent/gen.sh
 RUN sh ./scripts/buf/gen.sh
 
 RUN CGO_ENABLED=1 GOOS=linux \
