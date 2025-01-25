@@ -7,4 +7,5 @@ web/tsconfig.node.tsbuildinfo
 
 .pnpm-store
 
+.env
 testing/
