@@ -1,37 +1,120 @@
 package subtitle
 
-import "fmt"
+import (
+	"database/sql/driver"
+	"fmt"
 
-type Format int
-
-const (
-	PGS Format = iota
-	ASS
-	SRT
+	"gopkg.in/yaml.v3"
 )
 
-func ParseFormat(f string) (Format, error) {
-	switch f {
-	case "ass":
-		return ASS, nil
-	case "pgs":
-		return PGS, nil
-	case "srt":
-		return SRT, nil
-	}
+type code int
 
-	return ASS, fmt.Errorf("Invalid format: %v", f)
+const (
+	pgs code = iota
+	ass
+	srt
+)
+
+type Format struct {
+	yaml.Marshaler
+	yaml.Unmarshaler
+	code code
 }
 
-func MapFormat(f Format) string {
-	switch f {
-	case ASS:
+func (f Format) FileExt() string {
+	switch f.code {
+	case pgs:
+		return "sup"
+	case ass:
 		return "ass"
-	case PGS:
-		return "pgs"
-	case SRT:
+	case srt:
 		return "srt"
 	}
 
 	return ""
+}
+
+func (f Format) String() string {
+	switch f.code {
+	case pgs:
+		return "PGS"
+	case ass:
+		return "ASS"
+	case srt:
+		return "SRT"
+	}
+
+	return ""
+}
+
+func ParseFormat(str string) (*Format, error) {
+	switch str {
+	case "PGS":
+		return &PGS, nil
+	case "ASS":
+		return &ASS, nil
+	case "SRT":
+		return &SRT, nil
+	}
+
+	return nil, fmt.Errorf("invalid format \"%s\"", str)
+}
+
+var (
+	PGS Format = Format{code: pgs}
+	ASS Format = Format{code: ass}
+	SRT Format = Format{code: srt}
+)
+
+func (f Format) FFMpegString() string {
+	switch f.code {
+	case pgs:
+		return "sup"
+	case ass:
+		return "ass"
+	case srt:
+		return "srt"
+	}
+
+	return ""
+}
+
+func (f Format) MarshalYAML() (interface{}, error) {
+	return f.String(), nil
+}
+
+func (f *Format) UnmarshalYAML(value *yaml.Node) error {
+	var rawFormat string
+	if err := value.Decode(&rawFormat); err != nil {
+		return err
+	}
+
+	format, err := ParseFormat(rawFormat)
+	if err != nil {
+		return err
+	}
+
+	f.code = format.code
+
+	return nil
+}
+
+func (f Format) Value() (driver.Value, error) {
+	return f.String(), nil
+}
+
+func (f *Format) Scan(src any) error {
+	switch v := src.(type) {
+	case string:
+		format, err := ParseFormat(v)
+		if err != nil {
+			return err
+		}
+
+		f.code = format.code
+	default:
+		return fmt.Errorf("unsupposed type: %t", src)
+	}
+
+	return nil
 }

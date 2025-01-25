@@ -2,25 +2,32 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
-// Job holds the schema definition for the Job entity.
-type Job struct {
+// JobSchema holds the schema definition for the JobSchema entity.
+type JobSchema struct {
 	ent.Schema
 }
 
-// Fields of the Job.
-func (Job) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("name"),
-		field.String("description"),
-		field.Bool("running").
-			Default(false),
+// Annotations of the JobSchema.
+func (JobSchema) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Annotation{Table: "jobs"},
 	}
 }
 
-// Edges of the Job.
-func (Job) Edges() []ent.Edge {
-	return nil
+// Fields of the JobSchema.
+func (JobSchema) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name"),
+		field.Bool("is_running"),
+	}
+}
+
+// Edges of the JobSchema.
+func (JobSchema) Edges() []ent.Edge {
+	return []ent.Edge{}
 }

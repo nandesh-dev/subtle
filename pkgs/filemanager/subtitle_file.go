@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/text/language"
+  "github.com/nandesh-dev/subtle/pkgs/language"
 )
 
 type SubtitleFile struct {

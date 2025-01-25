@@ -2,20 +2,32 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/nandesh-dev/subtle/pkgs/language"
+	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 )
 
-// Subtitle holds the schema definition for the Subtitle entity.
-type Subtitle struct {
+// SubtitleSchema holds the schema definition for the SubtitleSchema entity.
+type SubtitleSchema struct {
 	ent.Schema
 }
 
-// Fields of the Subtitle.
-func (Subtitle) Fields() []ent.Field {
+// Annotations of the SubtitleSchema.
+func (SubtitleSchema) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Annotation{Table: "subtitles"},
+	}
+}
+
+// Fields of the SubtitleSchema.
+func (SubtitleSchema) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title"),
-		field.String("language"),
+		field.String("language").
+			GoType(language.English),
 		field.Enum("stage").
 			Values("detected", "extracted", "formated", "exported"),
 		field.Bool("is_processing").
@@ -23,21 +35,25 @@ func (Subtitle) Fields() []ent.Field {
 		field.Bool("import_is_external").
 			Default(false),
 		field.String("import_format").
-			Optional(),
-		field.Int32("import_video_stream_index").
-			Optional(),
+			GoType(subtitle.SRT),
+		field.Int("import_video_stream_index").
+			Optional().
+			Nillable(),
 		field.String("export_path").
-			Optional(),
+			Optional().
+			Nillable(),
 		field.String("export_format").
-			Optional(),
+			GoType(subtitle.SRT).
+			Optional().
+			Nillable(),
 	}
 }
 
-// Edges of the Subtitle.
-func (Subtitle) Edges() []ent.Edge {
+// Edges of the SubtitleSchema.
+func (SubtitleSchema) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("cues", Cue.Type),
-		edge.From("video", Video.Type).
+		edge.To("cues", SubtitleCueSchema.Type),
+		edge.From("video", VideoSchema.Type).
 			Ref("subtitles"),
 	}
 }

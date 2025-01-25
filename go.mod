@@ -6,6 +6,7 @@ toolchain go1.23.3
 
 require (
 	entgo.io/ent v0.14.1
+	github.com/joho/godotenv v1.5.1
 	github.com/lmittmann/tint v1.0.5
 	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/u2takey/ffmpeg-go v0.5.0

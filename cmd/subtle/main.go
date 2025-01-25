@@ -4,31 +4,17 @@ import (
 	"context"
 	"log"
 	"os"
-	"path/filepath"
 
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/nandesh-dev/subtle/internal/jobs"
-	"github.com/nandesh-dev/subtle/pkgs/config"
+	"github.com/nandesh-dev/subtle/pkgs/configuration"
 	"github.com/nandesh-dev/subtle/pkgs/ent"
+	"github.com/nandesh-dev/subtle/pkgs/env"
 	"github.com/nandesh-dev/subtle/pkgs/logging"
 )
 
 func main() {
-	configDirectoryPath := os.Getenv("CONFIG_DIRECTORY")
-	if configDirectoryPath == "" {
-		log.Fatal("CONFIG_DIRECTORY environment variable not present")
-	}
-
-	config, err := config.Open(filepath.Join(configDirectoryPath, "config.yaml"))
-	if err != nil {
-		log.Fatal("Cannot open config", err)
-	}
-
-	c, err := config.Read()
-	if err != nil {
-		log.Fatal("Cannot read config", err)
-	}
-
-	logFile, err := os.OpenFile(c.Logging.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(env.LogFilepath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal("cannot open log file", err)
 	}
@@ -36,20 +22,35 @@ func main() {
 	defer logFile.Close()
 
 	logger := logging.New(logging.Options{
-		ConsoleLevel:  c.Logging.ConsoleLevel,
-		FileLevel:     c.Logging.FileLevel,
+		ConsoleLevel:  env.ConsoleLogLevel(),
+		FileLevel:     env.FileLogLevel(),
 		ConsoleWriter: os.Stdout,
 		FileWriter:    logFile,
 	})
 
-	db, err := ent.Open(c.Database.Path)
+	logger.Info("reading config file")
+	configFile, err := configuration.Open(env.ConfigFilepath())
 	if err != nil {
-		log.Fatal("Cannot open database", err)
+		logger.Error("cannot open config file", "err", err, "path", env.ConfigFilepath())
+		return
 	}
 
+	logger.Info("opening database file")
+	db, err := ent.Open(env.DatabaseFilepath())
+	if err != nil {
+		logger.Error("cannot open database file", "err", err, "database_filepath", env.DatabaseFilepath())
+		return
+	}
+
+	logger.Info("migrating database")
 	if err := db.Schema.Create(context.Background()); err != nil {
-		log.Fatal("Cannot migrate database", err)
+		logger.Error("cannot migrate database", "err", err)
+		return
 	}
 
-	jobs.Init(logger, config, db)
+	logger.Info("setting up jobs in database")
+	jobs.SetupDatabase(db)
+
+	logger.Info("running jobs")
+	jobs.StartJobRunTicker(context.Background(), logger, configFile, db)
 }

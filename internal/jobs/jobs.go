@@ -2,109 +2,149 @@ package jobs
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/nandesh-dev/subtle/generated/ent"
-	job_schema "github.com/nandesh-dev/subtle/generated/ent/job"
+	"github.com/nandesh-dev/subtle/generated/ent/jobschema"
 	"github.com/nandesh-dev/subtle/internal/jobs/export"
 	"github.com/nandesh-dev/subtle/internal/jobs/extract"
 	"github.com/nandesh-dev/subtle/internal/jobs/format"
-	"github.com/nandesh-dev/subtle/internal/jobs/media"
-	"github.com/nandesh-dev/subtle/pkgs/config"
+	"github.com/nandesh-dev/subtle/internal/jobs/scan"
+	"github.com/nandesh-dev/subtle/pkgs/configuration"
 )
 
-func Init(logger *slog.Logger, conf *config.Config, db *ent.Client) error {
-	c, err := conf.Read()
-	if err != nil {
-		return err
-	}
+type Job struct {
+	name string
+}
 
-	jobs := []struct {
-		name        string
-		description string
-		run         func(*slog.Logger, *config.Config, *ent.Client)
-	}{
-		{
-			name:        "Media",
-			description: "Scans the media directory for new video files and extract raw subtitle streams from it.",
-			run:         media.Run,
-		},
-		{
-			name:        "Extract",
-			description: "Converts the raw subtitle streams into usable text / images based subtitles.",
-			run:         extract.Run,
-		},
-		{
-			name:        "Format",
-			description: "Converts the original text / image into final text applying all the formating specified.",
-			run:         format.Run,
-		},
-		{
-			name:        "Export",
-			description: "Exports subtitles to files.",
-			run:         export.Run,
-		},
-	}
+var (
+	Scan    Job = Job{name: "scan"}
+	Extract Job = Job{name: "extract"}
+	Format  Job = Job{name: "format"}
+	Export  Job = Job{name: "export"}
+)
 
-	for _, job := range jobs {
-		if count, err := db.Job.Update().Where(job_schema.Name(job.name)).SetDescription(job.description).SetRunning(false).Save(context.Background()); err != nil {
-			logger.Error("cannot update job info to database", "err", err)
-			return err
-		} else if count == 0 {
-			if err := db.Job.Create().SetName(job.name).SetDescription(job.description).Exec(context.Background()); err != nil {
-				logger.Error("cannot add job into to database", "err", err)
-				return err
+var Jobs = []Job{Scan, Extract, Format, Export}
+
+func SetupDatabase(db *ent.Client) error {
+	for _, job := range Jobs {
+		count, err := db.JobSchema.Update().
+			Where(jobschema.Name(job.name)).
+			SetIsRunning(false).
+			Save(context.Background())
+		if err != nil {
+			return fmt.Errorf("cannot update job status in database: %w", err)
+		}
+
+		if count == 0 {
+			if err := db.JobSchema.Create().
+				SetName(job.name).
+				Exec(context.Background()); err != nil {
+				return fmt.Errorf("cannot add job status to database: %w", err)
 			}
 		}
 	}
 
-	ticker := time.NewTicker(c.Job.Delay)
-	defer ticker.Stop()
+	return nil
+}
 
-	RunAll(logger, conf, db, jobs)
+const (
+	configUpdateInterval  = 5 * time.Second
+	defaultJobRunInterval = 30 * time.Minute
+)
+
+func StartJobRunTicker(ctx context.Context, logger *slog.Logger, configFile *configuration.File, db *ent.Client) {
+	config, err := configFile.Read()
+	if err != nil {
+		logger.Error("failed to read configuration file", "err", err)
+		return
+	}
+
+	jobRunInterval := defaultJobRunInterval
+	if config.Job.Setting.Interval > 0 {
+		jobRunInterval = config.Job.Setting.Interval
+	} else {
+		logger.Warn("job interval should be more than 0 second; using default", "default_interval", defaultJobRunInterval.String())
+	}
+
+	intervalUpdateTicker := time.NewTicker(configUpdateInterval)
+	defer intervalUpdateTicker.Stop()
+
+	jobRunTicker := time.NewTicker(jobRunInterval)
+	defer jobRunTicker.Stop()
+
+	for _, job := range Jobs {
+		Run(job, ctx, logger, configFile, db)
+	}
 
 	for {
 		select {
-		case <-ticker.C:
-			RunAll(logger, conf, db, jobs)
+		case <-ctx.Done():
+			return
+
+		case <-intervalUpdateTicker.C:
+			newConfig, err := configFile.Read()
+			if err != nil {
+				logger.Warn("failed to read configuration file; ignoring updates if any", "err", err)
+				continue
+			}
+
+			newJobRunInterval := newConfig.Job.Setting.Interval
+
+			if newJobRunInterval <= 0 {
+				logger.Warn("job interval should be more than 0 second; ignoring update", "new_interval", newJobRunInterval.String())
+				continue
+			}
+
+			if newJobRunInterval != jobRunInterval {
+				logger.Debug("updating job interval")
+				jobRunInterval = newJobRunInterval
+				jobRunTicker.Reset(jobRunInterval)
+			}
+
+		case <-jobRunTicker.C:
+			for _, job := range Jobs {
+				Run(job, ctx, logger, configFile, db)
+			}
 		}
 	}
 }
 
-func RunAll(logger *slog.Logger, conf *config.Config, db *ent.Client, jobs []struct {
-	name        string
-	description string
-	run         func(*slog.Logger, *config.Config, *ent.Client)
-}) {
-	runningJobCount, err := db.Job.Query().Where(job_schema.Running(true)).Count(context.Background())
-	if err != nil {
-		logger.Error("cannot get running job count from database", "err", err)
+func Run(job Job, ctx context.Context, logger *slog.Logger, configFile *configuration.File, db *ent.Client) {
+	logger = logger.With("job", job.name)
+
+	if err := db.JobSchema.Update().
+		Where(jobschema.Name(job.name)).
+		SetIsRunning(true).
+		Exec(context.Background()); err != nil {
+		logger.Error("cannot update job to running", "err", err)
 		return
 	}
 
-	if runningJobCount > 0 {
-		logger.Info("some job(s) are already running! skipping")
-		return
+	logger.Info("running job")
+
+	switch job {
+	case Scan:
+		scan.Run(ctx, logger, configFile, db)
+	case Extract:
+		extract.Run(ctx, logger, configFile, db)
+	case Format:
+		format.Run(ctx, logger, configFile, db)
+	case Export:
+		export.Run(ctx, logger, configFile, db)
+	default:
+		logger.Warn("job not found")
 	}
 
-	for _, job := range jobs {
-		logger := logger.With("job", job.name)
+	logger.Info("job completed")
 
-		if err := db.Job.Update().Where(job_schema.Name(job.name)).SetRunning(true).Exec(context.Background()); err != nil {
-			logger.Error("cannot update job to running", "err", err)
-			continue
-		}
-
-		logger.Info("running job")
-
-		job.run(logger, conf, db)
-
-		logger.Info("job completed")
-
-		if err := db.Job.Update().Where(job_schema.Name(job.name)).SetRunning(false).Exec(context.Background()); err != nil {
-			logger.Error("cannot update job to stopped", "err", err)
-			continue
-		}
+	if err := db.JobSchema.Update().
+		Where(jobschema.Name(job.name)).
+		SetIsRunning(false).
+		Exec(context.Background()); err != nil {
+		logger.Error("cannot update job to stopped", "err", err)
+		return
 	}
 }

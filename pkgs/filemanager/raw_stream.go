@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nandesh-dev/subtle/pkgs/language"
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
-	"golang.org/x/text/language"
 )
 
 type RawStream struct {

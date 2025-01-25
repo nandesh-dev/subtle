@@ -8,7 +8,6 @@ import (
 	"image/color"
 	"image/png"
 	"math"
-	"os"
 	"time"
 
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
@@ -102,10 +101,6 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 
 				if err := png.Encode(&imageBuffer, image); err != nil {
 					return nil, fmt.Errorf("Cannot encode image to png: %w", err)
-				}
-
-				if err := os.WriteFile("testing/debug/image.png", imageBuffer.Bytes(), 0644); err != nil {
-					return nil, fmt.Errorf("Cannot write image to disk: %w", err)
 				}
 
 				if err := tesseractClient.SetImageFromBytes(imageBuffer.Bytes()); err != nil {
