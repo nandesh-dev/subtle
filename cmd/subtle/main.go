@@ -6,6 +6,7 @@ import (
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/nandesh-dev/subtle/internal/api"
 	"github.com/nandesh-dev/subtle/internal/jobs"
 	"github.com/nandesh-dev/subtle/pkgs/configuration"
 	"github.com/nandesh-dev/subtle/pkgs/ent"
@@ -52,5 +53,14 @@ func main() {
 	jobs.SetupDatabase(db)
 
 	logger.Info("running jobs")
-	jobs.StartJobRunTicker(context.Background(), logger, configFile, db)
+	go jobs.StartJobRunTicker(context.Background(), logger, configFile, db)
+
+	logger.Info("creating api server")
+	apiServer := api.NewAPIServer(api.APIServerOptions{
+		EnableGRPCReflection: env.EnableGRPCReflection(),
+	})
+
+	if err := apiServer.ListenAndServe(env.WebServerAddress()); err != nil {
+		logger.Error("cannot start the api server", "err", err)
+	}
 }

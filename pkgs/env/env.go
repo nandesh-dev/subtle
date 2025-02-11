@@ -7,11 +7,13 @@ import (
 )
 
 const (
-	configFilepathKey   = "SUBTLE_CONFIG_FILEPATH"
-	databaseFilepathKey = "SUBTLE_DATABASE_FILEPATH"
-	logFilepathKey      = "SUBTLE_LOG_FILEPATH"
-	fileLogLevelKey     = "SUBTLE_FILE_LOG_LEVEL"
-	consoleLogLevelKey  = "SUBTLE_CONSOLE_LOG_LEVEL"
+	configFilepathKey       = "SUBTLE_CONFIG_FILEPATH"
+	databaseFilepathKey     = "SUBTLE_DATABASE_FILEPATH"
+	logFilepathKey          = "SUBTLE_LOG_FILEPATH"
+	fileLogLevelKey         = "SUBTLE_FILE_LOG_LEVEL"
+	consoleLogLevelKey      = "SUBTLE_CONSOLE_LOG_LEVEL"
+	enableGRPCReflectionKey = "SUBTLE_ENABLE_GRPC_REFLECTION"
+	webServerAddressKey     = "SUBTLE_WEB_SERVER_ADDRESS"
 )
 
 func ConfigFilepath() string {
@@ -54,8 +56,8 @@ func FileLogLevel() slog.Level {
 	switch rawLogLevel {
 	case "INFO":
 		return slog.LevelInfo
-  case "WARN":
-    return slog.LevelWarn
+	case "WARN":
+		return slog.LevelWarn
 	case "ERROR":
 		return slog.LevelError
 	case "DEBUG":
@@ -76,8 +78,8 @@ func ConsoleLogLevel() slog.Level {
 	switch rawLogLevel {
 	case "INFO":
 		return slog.LevelInfo
-  case "WARN":
-    return slog.LevelWarn
+	case "WARN":
+		return slog.LevelWarn
 	case "ERROR":
 		return slog.LevelError
 	case "DEBUG":
@@ -86,4 +88,29 @@ func ConsoleLogLevel() slog.Level {
 
 	log.Fatalf("invalid console log level; %s", rawLogLevel)
 	return slog.LevelInfo
+}
+
+func EnableGRPCReflection() bool {
+	enableGRPCReflectionString := os.Getenv(enableGRPCReflectionKey)
+
+	switch enableGRPCReflectionString {
+	case "true":
+		return true
+	case "TRUE":
+		return true
+	case "1":
+		return true
+	default:
+		return false
+	}
+}
+
+func WebServerAddress() string {
+	address := os.Getenv(webServerAddressKey)
+
+	if address == "" {
+		log.Fatalf("web server address not set using \"%s\"", webServerAddressKey)
+	}
+
+	return address
 }

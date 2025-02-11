@@ -5,12 +5,18 @@ go 1.23.0
 toolchain go1.23.3
 
 require (
+	connectrpc.com/connect v1.18.1
+	connectrpc.com/cors v0.1.0
+	connectrpc.com/grpcreflect v1.3.0
 	entgo.io/ent v0.14.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lmittmann/tint v1.0.5
 	github.com/otiai10/gosseract/v2 v2.4.1
+	github.com/rs/cors v1.11.1
 	github.com/u2takey/ffmpeg-go v0.5.0
+	golang.org/x/net v0.33.0
 	golang.org/x/text v0.21.0
+	google.golang.org/protobuf v1.35.2
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.28.0
 )
@@ -38,7 +44,6 @@ require (
 	github.com/u2takey/go-utils v0.3.1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
