@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"path/filepath"
 
 	connectcors "connectrpc.com/cors"
 	"connectrpc.com/grpcreflect"
 	"github.com/nandesh-dev/subtle/generated/embed"
+	"github.com/nandesh-dev/subtle/generated/ent"
 	"github.com/nandesh-dev/subtle/generated/proto/web/webconnect"
 	"github.com/nandesh-dev/subtle/pkgs/configuration"
 	"github.com/rs/cors"
@@ -16,7 +18,9 @@ import (
 
 type WebServiceHandler struct {
 	webconnect.UnimplementedWebServiceHandler
+  ctx context.Context
 	configFile *configuration.File
+	db         *ent.Client
 }
 
 type APIServer struct {
@@ -28,10 +32,10 @@ type APIServerOptions struct {
 	COROrigins           []string
 }
 
-func NewAPIServer(configFile *configuration.File, options APIServerOptions) *APIServer {
+func NewAPIServer(ctx context.Context, configFile *configuration.File, db *ent.Client, options APIServerOptions) *APIServer {
 	mux := http.NewServeMux()
 
-	path, handler := webconnect.NewWebServiceHandler(WebServiceHandler{configFile: configFile})
+  path, handler := webconnect.NewWebServiceHandler(WebServiceHandler{configFile: configFile, db: db, ctx:ctx})
 	mux.Handle(path, handler)
 
 	if options.EnableGRPCReflection {
@@ -50,7 +54,7 @@ func NewAPIServer(configFile *configuration.File, options APIServerOptions) *API
 
 		if filepath.Ext(r.URL.Path) == "" {
 			http.ServeFileFS(w, r, frontendFilesystem, "index.html")
-      return
+			return
 		}
 
 		frontendFileServer.ServeHTTP(w, r)
