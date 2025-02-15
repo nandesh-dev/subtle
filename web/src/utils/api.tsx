@@ -9,11 +9,17 @@ type APIOptions = {
     enableMockTransport?: boolean
 }
 
-function delay(time: number) {
+function mimicNetworkDelay() {
+    const MINIMUM_DELAY = 100
+    const MAXIMUM_DELAY = 500
+
     return new Promise<void>((resolve, _) => {
-        setTimeout(() => {
-            resolve()
-        }, time)
+        setTimeout(
+            () => {
+                resolve()
+            },
+            Math.random() * (MAXIMUM_DELAY - MINIMUM_DELAY) + MINIMUM_DELAY
+        )
     })
 }
 
@@ -32,10 +38,11 @@ export class API {
             this.rpcTransport = createRouterTransport(({ service }) => {
                 service(WebService, {
                     async updateConfig({ updatedConfig: _ }) {
-                        await delay(1000)
                         return {}
                     },
-                    getConfig() {
+                    async getConfig() {
+                        await mimicNetworkDelay()
+
                         return {
                             config: `watch_directories:
     - path: /media
@@ -83,7 +90,9 @@ server:
 `,
                         }
                     },
-                    getSubtitleSegments({ id }) {
+                    async getSubtitleSegments({ id }) {
+                        await mimicNetworkDelay()
+
                         return {
                             segments: [
                                 {
@@ -119,7 +128,9 @@ server:
                             ],
                         }
                     },
-                    getSubtitle({ id }) {
+                    async getSubtitle({ id }) {
+                        await mimicNetworkDelay()
+
                         let name = 'English'
                         switch (id) {
                             case 0:
@@ -135,7 +146,9 @@ server:
 
                         return { name }
                     },
-                    getVideo({ id }) {
+                    async getVideo({ id }) {
+                        await mimicNetworkDelay()
+
                         let filepath = ''
                         switch (id) {
                             case 0:
@@ -158,7 +171,9 @@ server:
 
                         return { filepath, subtitleIds: [0, 1, 2] }
                     },
-                    getDirectory({ path }) {
+                    async getDirectory({ path }) {
+                        await mimicNetworkDelay()
+
                         if (path == '/media/series') {
                             return {
                                 childrenDirectoryNames: ['Horimiya'],
@@ -178,12 +193,16 @@ server:
                             videoIds: [0, 1, 2, 3],
                         }
                     },
-                    getMediaDirectories() {
+                    async getMediaDirectories() {
+                        await mimicNetworkDelay()
+
                         return {
                             paths: ['/media/series'],
                         }
                     },
-                    getGlobalStatistics() {
+                    async getGlobalStatistics() {
+                        await mimicNetworkDelay()
+
                         return {
                             Exported: 92,
                             Formated: 41,
