@@ -1,5 +1,7 @@
 # Subtle
 
+![Cover](https://github.com/nandesh-dev/subtle/blob/main/doc/assets/images/cover.png?raw=true)
+
 Your tool to manage all the subtitles in your personal media library. Subtle helps you extract and organize subtitle files for all your media content.
 
 ## Docker Compose
