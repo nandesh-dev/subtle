@@ -9,7 +9,7 @@ RUN apt-get install -y \
   protobuf-compiler
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-RUN . "$HOME/.nvm/nvm.sh" && nvm install 22
+RUN . "/root/.nvm/nvm.sh" && nvm install 22
 RUN corepack enable pnpm
 
 
