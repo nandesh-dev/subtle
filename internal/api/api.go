@@ -6,6 +6,7 @@ import (
 	connectcors "connectrpc.com/cors"
 	"connectrpc.com/grpcreflect"
 	"github.com/nandesh-dev/subtle/generated/proto/web/webconnect"
+	"github.com/nandesh-dev/subtle/pkgs/configuration"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -13,6 +14,7 @@ import (
 
 type WebServiceHandler struct {
 	webconnect.UnimplementedWebServiceHandler
+	configFile *configuration.File
 }
 
 type APIServer struct {
@@ -24,10 +26,10 @@ type APIServerOptions struct {
 	COROrigins           []string
 }
 
-func NewAPIServer(options APIServerOptions) *APIServer {
+func NewAPIServer(configFile *configuration.File, options APIServerOptions) *APIServer {
 	mux := http.NewServeMux()
 
-	path, handler := webconnect.NewWebServiceHandler(WebServiceHandler{})
+	path, handler := webconnect.NewWebServiceHandler(WebServiceHandler{configFile: configFile})
 	mux.Handle(path, handler)
 
 	if options.EnableGRPCReflection {

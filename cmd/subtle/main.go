@@ -56,7 +56,7 @@ func main() {
 	go jobs.StartJobRunTicker(context.Background(), logger, configFile, db)
 
 	logger.Info("creating api server")
-	apiServer := api.NewAPIServer(api.APIServerOptions{
+	apiServer := api.NewAPIServer(configFile, api.APIServerOptions{
 		EnableGRPCReflection: env.EnableGRPCReflection(),
 	})
 

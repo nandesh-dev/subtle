@@ -150,3 +150,12 @@ func (f File) Write(config Config) error {
 
 	return nil
 }
+
+func (f File) ReadString() (string, error) {
+	file, err := os.ReadFile(f.path)
+	if err != nil {
+		return "", err
+	}
+
+  return string(file), nil
+}
