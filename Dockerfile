@@ -2,6 +2,7 @@ FROM ubuntu:latest AS build-stage
 
 
 # Build tools and dependencies
+ENV HOME=/root
 RUN apt-get update
 RUN apt-get install -y \
   g++-10 autoconf make git golang libtool pkg-config wget xz-utils libpng-dev \
@@ -9,7 +10,7 @@ RUN apt-get install -y \
   protobuf-compiler
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-RUN . "/root/.nvm/nvm.sh" && nvm install 22
+RUN . "$HOME/.nvm/nvm.sh" && nvm install 22
 RUN corepack enable pnpm
 
 
