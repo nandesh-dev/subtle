@@ -1,19 +1,32 @@
-FROM ubuntu:latest AS build-stage
+FROM node:22-alpine AS frontend-build-stage
+
+
+RUN corepack enable pnpm
+
+ENV HOME=/root
+
+WORKDIR /build/proto
+COPY ./proto .
+
+WORKDIR /build/web
+COPY ./web .
+
+# Subtle build
+RUN pnpm i
+RUN npx buf generate
+RUN pnpm run build
+
+
+
+FROM ubuntu:latest AS backend-build-stage
 
 
 # Build tools and dependencies
-ENV HOME=/root
-
 RUN apt-get update
 RUN apt-get install -y \
   g++-10 autoconf make git golang libtool pkg-config wget xz-utils libpng-dev \
   tesseract-ocr-eng \
   protobuf-compiler
-
-RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-RUN . "$HOME/.nvm/nvm.sh" && nvm install 22
-RUN corepack enable pnpm
-
 
 # FFmpeg static build
 WORKDIR /build/ffmpeg
@@ -49,7 +62,10 @@ COPY . .
 ENV GOPATH=$HOME/go
 ENV PATH=$PATH:$GOPATH/bin
 
-RUN make generate
+RUN sh ./scripts/ent/gen.sh
+RUN sh ./scripts/buf/gen.sh
+RUN sh ./scripts/embed/setup.sh
+COPY --from=frontend-build-stage /build/web/dist /build/subtle/generated/embed/frontend
 
 RUN CGO_ENABLED=1 GOOS=linux \
     go build  -a -tags netgo -ldflags '-extldflags "-static -L/usr/local/lib -ltesseract -lleptonica -lpng -lz"' ./cmd/subtle
@@ -65,19 +81,19 @@ RUN mkdir /volumes/config
 FROM scratch
 
 
-# Subtle binary
-COPY --from=build-stage /build/subtle/subtle /subtle
+# Subtle Backend binary
+COPY --from=backend-build-stage /build/subtle/subtle /subtle
 
 # FFMpeg binaries
-COPY --from=build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
-COPY --from=build-stage /build/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
+COPY --from=backend-build-stage /build/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=backend-build-stage /build/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
 # OCR Language data
-COPY --from=build-stage /usr/share/tesseract-ocr/5/tessdata/eng.traineddata /usr/local/share/tessdata/eng.traineddata
+COPY --from=backend-build-stage /usr/share/tesseract-ocr/5/tessdata/eng.traineddata /usr/local/share/tessdata/eng.traineddata
 
 
 # Volume mounts
-COPY --from=build-stage /volumes/media /media
-COPY --from=build-stage /volumes/config /config
+COPY --from=backend-build-stage /volumes/media /media
+COPY --from=backend-build-stage /volumes/config /config
 
 CMD ["/subtle"]
