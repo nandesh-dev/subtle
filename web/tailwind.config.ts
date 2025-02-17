@@ -5,7 +5,7 @@ export default {
     theme: {
         extend: {
             animation: {
-                loader: 'loader 3s infinite',
+                loader: 'loader 0.8s infinite',
             },
             keyframes: {
                 loader: {

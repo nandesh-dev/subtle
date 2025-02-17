@@ -38,6 +38,7 @@ export class API {
             this.rpcTransport = createRouterTransport(({ service }) => {
                 service(WebService, {
                     async updateConfig({ updatedConfig: _ }) {
+                        await mimicNetworkDelay()
                         return {}
                     },
                     async getConfig() {

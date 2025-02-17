@@ -157,5 +157,18 @@ func (f File) ReadString() (string, error) {
 		return "", err
 	}
 
-  return string(file), nil
+	return string(file), nil
+}
+
+func (f File) WriteString(configString string) error {
+	var config Config
+	if err := yaml.Unmarshal([]byte(configString), &config); err != nil {
+    return fmt.Errorf("invalid config: %w", err)
+	}
+
+	if err := os.WriteFile(f.path, []byte(configString), 0644); err != nil {
+		return fmt.Errorf("error writing config to file: %w", err)
+	}
+
+	return nil
 }
