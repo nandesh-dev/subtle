@@ -49,9 +49,26 @@ message GetSubtitleRequest {
   int32 id = 1;
 }
 
+enum SubtitleStage {
+  DETECTED = 0;
+  EXTRACTED = 1;
+  FORMATED = 2;
+  EXPORTED = 3;
+}
+
+enum SubtitleImportFormat {
+  SRT = 0;
+  ASS = 1;
+  PGS = 2;
+}
+
 message GetSubtitleResponse {
-  string name = 1;
-  int32 video_id = 2;
+  string title = 1;
+  string language = 2;
+  SubtitleStage stage = 3;
+  bool is_processing = 4;
+  bool import_is_external = 5;
+  SubtitleImportFormat import_format = 6;
 }
 
 message GetVideoRequest {

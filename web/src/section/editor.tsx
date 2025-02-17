@@ -68,20 +68,12 @@ export function Editor() {
                 <section className="col-span-2 flex h-lg flex-row justify-between">
                     <button
                         className="text-sm text-text-1"
-                        onClick={() => {
-                            navigation.navigate(
-                                Routes.Files,
-                                new URLSearchParams({
-                                    video_id:
-                                        getSubtitleQuery.data.videoId.toString(),
-                                })
-                            )
-                        }}
+                        onClick={() => navigation.back()}
                     >
                         Return
                     </button>
                     <p className="text-xs text-text-1">
-                        {getSubtitleQuery.data.name}
+                        {getSubtitleQuery.data.title}
                     </p>
                 </section>
             )}

@@ -7,6 +7,10 @@ import {
     getSubtitle,
     getVideo,
 } from '../../../gen/proto/web/web-WebService_connectquery'
+import {
+    SubtitleImportFormat,
+    SubtitleStage,
+} from '../../../gen/proto/web/web_pb'
 
 export function Browser() {
     const navigation = useNavigation()
@@ -130,7 +134,7 @@ function FileView({ id }: { id: number }) {
             </section>
             <div className="absolute bottom-0 right-0 rounded-tl-md bg-neutral-2 p-md">
                 {!getVideoQuery.isSuccess ? (
-                    <div className="h-lg animate-pulse bg-neutral-1 rounded-sm w-[24rem]"/>
+                    <div className="h-lg w-[24rem] animate-pulse rounded-sm bg-neutral-1" />
                 ) : (
                     <p className="text-xs text-text-1">
                         {filepath.basename(getVideoQuery.data.filepath)}
@@ -144,12 +148,52 @@ function FileView({ id }: { id: number }) {
 function Subtitle({ id }: { id: number }) {
     const navigation = useNavigation()
 
-    const getSubtitleQuery = useQuery(getSubtitle, {
-        id,
-    })
+    const getSubtitleQuery = useQuery(getSubtitle, { id })
 
     if (!getSubtitleQuery.isSuccess) {
         return <div className="h-2xl animate-pulse rounded-sm bg-neutral-1" />
+    }
+
+    let stage = ''
+    switch (getSubtitleQuery.data.stage) {
+        case SubtitleStage.DETECTED:
+            stage = 'detected'
+            break
+        case SubtitleStage.EXTRACTED:
+            stage = 'extracted'
+            break
+        case SubtitleStage.FORMATED:
+            stage = 'formated'
+            break
+        case SubtitleStage.EXPORTED:
+            stage = 'exported'
+            break
+    }
+    if (getSubtitleQuery.data.isProcessing) {
+        switch (getSubtitleQuery.data.stage) {
+            case SubtitleStage.DETECTED:
+                stage = 'extracting'
+                break
+            case SubtitleStage.EXTRACTED:
+                stage = 'formating'
+                break
+            case SubtitleStage.FORMATED:
+                stage = 'exporting'
+                break
+        }
+    }
+
+    let format = ''
+    switch (getSubtitleQuery.data.importFormat) {
+        case SubtitleImportFormat.SRT:
+            format = 'srt'
+            break
+        case SubtitleImportFormat.ASS:
+            format = 'ass'
+            break
+        case SubtitleImportFormat.PGS:
+            format = 'pgs'
+            break
     }
 
     return (
@@ -165,11 +209,17 @@ function Subtitle({ id }: { id: number }) {
             }}
         >
             <div className="h-full rounded-sm bg-primary-2 group-hover:bg-primary-1" />
-            <section className="grid grid-flow-row gap-sm lg:grid-flow-col">
+            <section className="grid grid-flow-row auto-rows-fr gap-sm lg:auto-cols-fr lg:grid-flow-col">
                 <p className="text-sm text-text-1">
-                    {getSubtitleQuery.data.name}
+                    {getSubtitleQuery.data.title}
                 </p>
-                <div className="text-xs text-text-1">Info</div>
+                <section className="grid auto-cols-fr grid-flow-col">
+                    <p className="text-xs text-text-1 text-center">
+                        {getSubtitleQuery.data.language}
+                    </p>
+                    <p className="text-xs text-text-1 text-center">{format}</p>
+                    <p className="text-xs text-text-1 text-center">{stage}</p>
+                </section>
             </section>
         </button>
     )

@@ -27,6 +27,11 @@ export class Navigation {
         })
     }
 
+    back() {
+      window.history.back()
+      this.updateEventListeners()
+    }
+
     navigate(route: Routes, searchParams?: URLSearchParams) {
         const newURL = new URL(window.location.href)
 

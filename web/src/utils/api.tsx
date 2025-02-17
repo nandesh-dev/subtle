@@ -1,7 +1,11 @@
 import { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouterTransport, Transport } from '@connectrpc/connect'
-import { WebService } from '../../gen/proto/web/web_pb'
+import {
+    SubtitleImportFormat,
+    SubtitleStage,
+    WebService,
+} from '../../gen/proto/web/web_pb'
 import { TransportProvider } from '@connectrpc/connect-query'
 import { createGrpcWebTransport } from '@connectrpc/connect-web'
 
@@ -132,20 +136,28 @@ server:
                     async getSubtitle({ id }) {
                         await mimicNetworkDelay()
 
-                        let name = 'English'
+                        let title = 'English'
                         switch (id) {
                             case 0:
-                                name = 'Forced English'
+                                title = 'Forced English'
                                 break
                             case 1:
-                                name = 'Japanese'
+                                title = 'Japanese'
                                 break
                             case 2:
-                                name = 'Full English'
+                                title = 'Full English'
                                 break
                         }
 
-                        return { name }
+                        return {
+                            title,
+                            videoId: 0,
+                            language: 'en',
+                            stage: SubtitleStage.EXTRACTED,
+                            isProcessing: false,
+                            importIsExternal: false,
+                            importFormat: SubtitleImportFormat.SRT,
+                        }
                     },
                     async getVideo({ id }) {
                         await mimicNetworkDelay()
