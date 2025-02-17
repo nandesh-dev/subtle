@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	"github.com/nandesh-dev/subtle/generated/proto/web"
 	"gopkg.in/yaml.v3"
 )
 
@@ -118,17 +117,4 @@ func (f *Format) Scan(src any) error {
 	}
 
 	return nil
-}
-
-func (f *Format) ToProto() web.SubtitleImportFormat {
-  switch f.code {
-  case srt:
-    return web.SubtitleImportFormat_SRT
-  case ass:
-    return web.SubtitleImportFormat_ASS
-  case pgs:
-    return web.SubtitleImportFormat_PGS
-  }
-
-  return web.SubtitleImportFormat_SRT
 }
