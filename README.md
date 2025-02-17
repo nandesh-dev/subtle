@@ -21,7 +21,7 @@ services:
       - SUBTLE_FILE_LOG_LEVEL=INFO
       - SUBTLE_CONSOLE_LOG_LEVEL=ERROR
       - SUBTLE_WEB_SERVER_ADDRESS=0.0.0.0:3000
-	  - SUBTLE_ENABLE_GRPC_REFLECTION=false
+      - SUBTLE_ENABLE_GRPC_REFLECTION=false
     volumes:
       - /<config_directory_path>:/config
       - /<media_directory_path>:/media
