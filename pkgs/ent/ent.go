@@ -26,6 +26,10 @@ func (d sqliteDriver) Open(name string) (driver.Conn, error) {
 		conn.Close()
 		return nil, fmt.Errorf("failed to enable foreign keys %m", err)
 	}
+	if _, err := c.Exec("PRAGMA journal_mode = WAL;", nil); err != nil {
+		conn.Close()
+    return nil, fmt.Errorf("failed to enable WAL mode %m", err)
+	}
 	return conn, nil
 }
 
