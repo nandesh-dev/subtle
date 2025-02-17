@@ -3,4 +3,10 @@ generate:
 	sh ./scripts/ent/gen.sh
 	sh ./scripts/embed/gen.sh
 
-.PHONY: generate
+clean:
+	rm -rf generated
+	rm -rf web/gen
+	rm web/tsconfig.app.tsbuildinfo
+	rm web/tsconfig.node.tsbuildinfo
+
+.PHONY: generate clean
