@@ -85,9 +85,13 @@ function NavigationBar() {
 }
 
 function Stats() {
+    const UPDATE_INTERVAL = 10 * 1000
     const { data: globalStatistics, isLoading } = useQuery(
         getGlobalStatistics,
-        {}
+        {},
+        {
+            refetchInterval: UPDATE_INTERVAL,
+        }
     )
 
     const Stat = (data: { name: string; value?: number }) => {
