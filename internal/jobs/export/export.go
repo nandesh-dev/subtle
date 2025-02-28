@@ -186,12 +186,14 @@ func handleSubtitle(subtitleEntry *ent.SubtitleSchema, ctx context.Context, logg
 		logger.Error("cannot get subtitle video", "err", err)
 	}
 
+	title := strings.ReplaceAll(strings.ReplaceAll(subtitleEntry.Title, "/", "|"), "\\", "|")
+
 	exportFilepath := filepath.Join(
 		filepath.Dir(videoEntry.Filepath),
 		strings.TrimSuffix(
 			filepath.Base(videoEntry.Filepath),
 			filepath.Ext(videoEntry.Filepath),
-		)+"."+subtitleEntry.Title+"."+groupConfig.Config.Format.FileExt(),
+		)+"."+title+"."+groupConfig.Config.Format.FileExt(),
 	)
 
 	if _, err := os.Stat(exportFilepath); err == nil {
