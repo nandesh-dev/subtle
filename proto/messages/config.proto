@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package messages;
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string config = 1;
+}

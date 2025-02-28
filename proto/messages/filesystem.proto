@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package messages;
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
+
+message GetRootDirectoryPathsRequest {}
+
+message GetRootDirectoryPathsResponse {
+  repeated string paths = 1;
+}
+
+message ReadDirectoryRequest {
+  string path = 1;
+}
+
+message ReadDirectoryResponse {
+  repeated string children_directory_paths = 1;
+  repeated string video_paths = 2;
+}
+
+message GetVideoRequest {
+  string path = 1;
+}
+
+message GetVideoResponse {
+  string id = 1;
+  string path = 2;
+  repeated string subtitle_ids = 3;
+}

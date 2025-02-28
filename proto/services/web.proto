@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package services;
+
+import "messages/config.proto";
+import "messages/filesystem.proto";
+import "messages/subtitle.proto";
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/services";
+
+service WebService {
+  rpc GetConfig(messages.GetConfigRequest) returns (messages.GetConfigResponse);
+
+  rpc GetRootDirectories(messages.GetRootDirectoryPathsRequest) returns (messages.GetRootDirectoryPathsResponse);
+  rpc ReadDirectory(messages.ReadDirectoryRequest) returns (messages.ReadDirectoryResponse);
+  rpc GetVideo(messages.GetVideoRequest) returns (messages.GetVideoResponse);
+
+  rpc GetSubtitle(messages.GetSubtitleRequest) returns (messages.GetSubtitleResponse);
+  rpc GetSubtitleCue(messages.GetSubtitleCueRequest) returns (messages.GetSubtitleCueResponse);
+  rpc GetSubtitleCueOriginalData(messages.GetSubtitleCueOriginalDataRequest) returns (messages.GetSubtitleCueOriginalDataResponse);
+  rpc GetSubtitleCueSegment(messages.GetSubtitleCueSegmentRequest) returns (messages.GetSubtitleCueSegmentResponse);
+}
