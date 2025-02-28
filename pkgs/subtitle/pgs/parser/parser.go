@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"image/png"
 	"math"
+	"os"
 	"time"
 
 	"github.com/nandesh-dev/subtle/pkgs/subtitle"
@@ -31,7 +32,7 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 	previousDisplaySet := *NewDisplaySet()
 	currentDisplaySet := *NewDisplaySet()
 
-	for reader.RemainingBytes() > 11 {
+	for reader.RemainingBytes() >= 11 {
 		header, err := readHeader(reader)
 		if err != nil {
 			return nil, fmt.Errorf("Cannot reader header: %w", err)
@@ -67,7 +68,13 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 				continue
 			}
 
-			currentDisplaySet.objectDefinitionSegments[segment.objectId] = *segment
+			if segment.sequenceFlag == LastInObjectDefinitionSequence || segment.sequenceFlag == IntermediateInObjectDefinitionSequence {
+				if originalSegment, exist := currentDisplaySet.objectDefinitionSegments[segment.objectId]; exist {
+					originalSegment.objectData = append(originalSegment.objectData, segment.objectData...)
+				}
+			} else {
+				currentDisplaySet.objectDefinitionSegments[segment.objectId] = segment
+			}
 
 		case PDSSegment:
 			segment, err := readPaletteDefinitionSegment(reader, header)
@@ -75,7 +82,7 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 				continue
 			}
 
-			currentDisplaySet.paletteDefinitionSegments[segment.paletteId] = *segment
+			currentDisplaySet.paletteDefinitionSegments[segment.paletteId] = segment
 
 		case WDSSegment:
 			segment, err := readWindowDefinitionSegment(reader, header)
@@ -84,7 +91,7 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 			}
 
 			for _, window := range segment.windows {
-				currentDisplaySet.windowDefinitions[window.id] = window
+				currentDisplaySet.windowDefinitions[window.id] = &window
 			}
 
 		case ENDSegment:
@@ -102,6 +109,8 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 				if err := png.Encode(&imageBuffer, image); err != nil {
 					return nil, fmt.Errorf("Cannot encode image to png: %w", err)
 				}
+
+        os.WriteFile("testing/images/output.png", imageBuffer.Bytes(), 0644)
 
 				if err := tesseractClient.SetImageFromBytes(imageBuffer.Bytes()); err != nil {
 					return nil, fmt.Errorf("Cannot send image to tesseract: %w", err)
@@ -145,7 +154,7 @@ func (_ *Parser) Parse(data []byte) (*subtitle.Subtitle, error) {
 
 func readHeader(reader *Reader) (*Header, error) {
 	reader.SetReadLimit(13)
-	defer reader.RemoveReadLimit()
+	defer reader.SkipPastReadLimit()
 
 	buf, err := reader.Read(11)
 	if err != nil {
@@ -325,32 +334,30 @@ func readObjectDefinitionSegment(reader *Reader, header *Header) (*ObjectDefinit
 	case 0xC0:
 		objectDefinitionSegment.sequenceFlag = FirstAndLastInObjectDefinitionSequence
 	default:
-		return nil, fmt.Errorf("Invalid sequence flag: %v", buf[3])
+		objectDefinitionSegment.sequenceFlag = IntermediateInObjectDefinitionSequence
 	}
 
-	objectDataLengthBytes := append([]byte{0x00}, buf[4:7]...)
-	objectDataLength := int(
-		binary.BigEndian.Uint32(objectDataLengthBytes),
-	)
-
-	buf, err = reader.Read(objectDataLength)
+	buf, err = reader.Read(reader.ReadLimit())
 	if err != nil {
 		return nil, fmt.Errorf("Cannot read object data: %w", err)
 	}
 
 	objectDefinitionSegment.objectData = buf[:]
 
-	if objectDefinitionSegment.sequenceFlag == FirstInObjectDefinitionSequence || objectDefinitionSegment.sequenceFlag == FirstAndLastInObjectDefinitionSequence {
-		objectDefinitionSegment.width = int(
-			binary.BigEndian.Uint16(buf[0:2]),
-		)
+	/*if objectDefinitionSegment.sequenceFlag == FirstInObjectDefinitionSequence || objectDefinitionSegment.sequenceFlag == FirstAndLastInObjectDefinitionSequence {
+	 */
+	objectDefinitionSegment.width = int(
 
-		objectDefinitionSegment.height = int(
-			binary.BigEndian.Uint16(buf[2:4]),
-		)
+		binary.BigEndian.Uint16(buf[0:2]),
+	)
 
-		objectDefinitionSegment.objectData = buf[4:]
-	}
+	objectDefinitionSegment.height = int(
+		binary.BigEndian.Uint16(buf[2:4]),
+	)
+
+	objectDefinitionSegment.objectData = buf[4:]
+	/*
+		}*/
 
 	return &objectDefinitionSegment, nil
 }

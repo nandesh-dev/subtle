@@ -12,6 +12,7 @@ const (
 	LastInObjectDefinitionSequence ObjectDefinitionSequenceFlag = iota
 	FirstInObjectDefinitionSequence
 	FirstAndLastInObjectDefinitionSequence
+	IntermediateInObjectDefinitionSequence
 )
 
 type ObjectDefinitionSegment struct {
@@ -89,58 +90,59 @@ type Header struct {
 type DisplaySet struct {
 	header                         Header
 	presentationCompositionSegment PresentationCompositionSegment
-	windowDefinitions              map[int]Window
-	paletteDefinitionSegments      map[int]PaletteDefinitionSegment
-	objectDefinitionSegments       map[int]ObjectDefinitionSegment
+	windowDefinitions              map[int]*Window
+	paletteDefinitionSegments      map[int]*PaletteDefinitionSegment
+	objectDefinitionSegments       map[int]*ObjectDefinitionSegment
 }
 
 func NewDisplaySet() *DisplaySet {
 	return &DisplaySet{
-		paletteDefinitionSegments: make(map[int]PaletteDefinitionSegment),
-		windowDefinitions:         make(map[int]Window),
-		objectDefinitionSegments:  make(map[int]ObjectDefinitionSegment),
+		paletteDefinitionSegments: make(map[int]*PaletteDefinitionSegment),
+		windowDefinitions:         make(map[int]*Window),
+		objectDefinitionSegments:  make(map[int]*ObjectDefinitionSegment),
 	}
 }
 
 type Reader struct {
-	data      []byte
-	cursor    int
-	readLimit int
+	data        []byte
+	cursor      int
+	readLimit   int
+	readLimited bool
 }
 
 func NewReader(data []byte) *Reader {
 	return &Reader{
-		data:      data,
-		cursor:    0,
-		readLimit: -1,
+		data:        data,
+		cursor:      0,
+		readLimit:   len(data),
+		readLimited: false,
 	}
 }
 
+func (r *Reader) RemainingBytes() int {
+	return len(r.data) - r.cursor
+}
+
 func (r *Reader) SetReadLimit(limit int) {
+	r.readLimited = true
 	r.readLimit = limit
 }
 
 func (r *Reader) RemoveReadLimit() {
-	r.readLimit = -1
+	r.readLimited = false
+	r.readLimit = r.RemainingBytes()
 }
 
-func (r *Reader) RemainingLimit() int {
-	if r.readLimit == -1 {
-		return len(r.data) - r.cursor
-	}
+func (r *Reader) ReadLimit() int {
 	return r.readLimit
 }
 
 func (r *Reader) SkipPastReadLimit() {
-	if r.readLimit == -1 {
+	if !r.readLimited {
 		return
 	}
 	r.cursor += r.readLimit
 	r.RemoveReadLimit()
-}
-
-func (r *Reader) RemainingBytes() int {
-	return len(r.data) - r.cursor - 1
 }
 
 func (r *Reader) ReachedEnd() bool {
@@ -152,11 +154,11 @@ func (r *Reader) Read(count int) ([]byte, error) {
 		return make([]byte, 0), nil
 	}
 
-	if r.readLimit != -1 {
+	if r.readLimited {
 		if count > r.readLimit {
 			buf, err := r.Read(r.readLimit)
 			if err != nil {
-				return make([]byte, 0), err
+				return buf, err
 			}
 
 			return append(buf, make([]byte, count-len(buf))...), nil
@@ -171,7 +173,10 @@ func (r *Reader) Read(count int) ([]byte, error) {
 		return make([]byte, 0), fmt.Errorf("Read cursor out of bound")
 	}
 
-	return r.data[r.cursor-count : r.cursor], nil
+	buf := make([]byte, count)
+	copy(buf, r.data[r.cursor-count:r.cursor])
+
+	return buf, nil
 }
 
 func (r *Reader) ReadByte() (byte, error) {
