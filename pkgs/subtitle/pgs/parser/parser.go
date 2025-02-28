@@ -525,7 +525,7 @@ func extractImagesFromDisplaySet(displaySet DisplaySet) ([]image.Image, error) {
 			}
 
 			if secondByte < 64 {
-				fillImage(0, 2)
+				fillImage(0, int(secondByte))
 				continue
 			}
 
