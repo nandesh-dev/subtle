@@ -1,9 +1,9 @@
 import { useQuery } from '@connectrpc/connect-query'
 import { Routes, useNavigation } from './utils/navigation'
 import { Style } from './utils/style'
-import { getGlobalStatistics } from '../gen/proto/web/web-WebService_connectquery'
 import { Editor, Files, Jobs, Settings } from './section'
 import { useIsMutating } from '@tanstack/react-query'
+import { calculateSubtitleStatistics } from '../gen/proto/services/web-WebService_connectquery'
 
 export function Main() {
     const navigation = useNavigation()
@@ -85,37 +85,77 @@ function NavigationBar() {
 }
 
 function Stats() {
-    const UPDATE_INTERVAL = 10 * 1000
-    const { data: globalStatistics, isLoading } = useQuery(
-        getGlobalStatistics,
+    const UPDATE_INTERVAL = 2 * 1000
+    const calculateSubtitleStatisticsQuery = useQuery(
+        calculateSubtitleStatistics,
         {},
         {
             refetchInterval: UPDATE_INTERVAL,
         }
     )
 
-    const Stat = (data: { name: string; value?: number }) => {
-        if (isLoading) {
-            return (
-                <div className="h-[8rem] w-full max-w-[16rem] animate-pulse rounded-sm bg-neutral-2" />
-            )
+    const Stat = ({
+        name,
+        value,
+        total,
+    }: {
+        name: string
+        value?: number
+        total?: number
+    }) => {
+        if (value == undefined || total == undefined) {
+            ;<div className="h-[8rem] w-full max-w-[16rem] animate-pulse rounded-sm bg-neutral-2" />
         }
-
         return (
             <div className="flex h-[8rem] w-full max-w-[16rem] flex-col">
-                <p className="text-lg text-text-1">{data.name}</p>
-                <p className="text-2xl font-light text-text-1">
-                    {data?.value}/{globalStatistics?.Total}
-                </p>
+                <p className="text-lg text-text-1">{name}</p>
+                <p className="text-2xl font-light text-text-1">{value} / {total}</p>
             </div>
         )
     }
 
     return (
         <section className="flex flex-row justify-center gap-2xl py-2xl">
-            <Stat name="Exported" value={globalStatistics?.Exported} />
-            <Stat name="Formated" value={globalStatistics?.Formated} />
-            <Stat name="Extracted" value={globalStatistics?.Extracted} />
+            {!calculateSubtitleStatisticsQuery.isSuccess ? (
+                <>
+                    <Stat name="Exported" />
+                    <Stat name="Formated" />
+                    <Stat name="Extracted" />
+                </>
+            ) : (
+                <>
+                    <Stat
+                        name="Exported"
+                        value={
+                            calculateSubtitleStatisticsQuery.data
+                                .videoWithExportedSubtitleCount
+                        }
+                        total={
+                            calculateSubtitleStatisticsQuery.data.totalVideoCount
+                        }
+                    />
+                    <Stat
+                        name="Formated"
+                        value={
+                            calculateSubtitleStatisticsQuery.data
+                                .videoWithFormatedSubtitleCount
+                        }
+                        total={
+                            calculateSubtitleStatisticsQuery.data.totalVideoCount
+                        }
+                    />
+                    <Stat
+                        name="Extracted"
+                        value={
+                            calculateSubtitleStatisticsQuery.data
+                                .videoWithExtractedSubtitleCount
+                        }
+                        total={
+                            calculateSubtitleStatisticsQuery.data.totalVideoCount
+                        }
+                    />
+                </>
+            )}
         </section>
     )
 }

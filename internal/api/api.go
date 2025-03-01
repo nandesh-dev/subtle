@@ -9,7 +9,7 @@ import (
 	"connectrpc.com/grpcreflect"
 	"github.com/nandesh-dev/subtle/generated/embed"
 	"github.com/nandesh-dev/subtle/generated/ent"
-	"github.com/nandesh-dev/subtle/generated/proto/web/webconnect"
+	"github.com/nandesh-dev/subtle/generated/proto/services/servicesconnect"
 	"github.com/nandesh-dev/subtle/pkgs/configuration"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
@@ -17,7 +17,7 @@ import (
 )
 
 type WebServiceHandler struct {
-	webconnect.UnimplementedWebServiceHandler
+	servicesconnect.UnimplementedWebServiceHandler
   ctx context.Context
 	configFile *configuration.File
 	db         *ent.Client
@@ -35,11 +35,11 @@ type APIServerOptions struct {
 func NewAPIServer(ctx context.Context, configFile *configuration.File, db *ent.Client, options APIServerOptions) *APIServer {
 	mux := http.NewServeMux()
 
-  path, handler := webconnect.NewWebServiceHandler(WebServiceHandler{configFile: configFile, db: db, ctx:ctx})
+  path, handler := servicesconnect.NewWebServiceHandler(WebServiceHandler{configFile: configFile, db: db, ctx:ctx})
 	mux.Handle(path, handler)
 
 	if options.EnableGRPCReflection {
-		path, handler = grpcreflect.NewHandlerV1Alpha(grpcreflect.NewStaticReflector(webconnect.WebServiceName))
+		path, handler = grpcreflect.NewHandlerV1Alpha(grpcreflect.NewStaticReflector(servicesconnect.WebServiceName))
 		mux.Handle(path, handler)
 	}
 

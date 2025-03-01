@@ -10,11 +10,13 @@ option go_package = "github.com/nandesh-dev/subtle/generated/proto/services";
 
 service WebService {
   rpc GetConfig(messages.GetConfigRequest) returns (messages.GetConfigResponse);
+  rpc UpdateConfig(messages.UpdateConfigRequest) returns (messages.UpdateConfigResponse);
 
-  rpc GetRootDirectories(messages.GetRootDirectoryPathsRequest) returns (messages.GetRootDirectoryPathsResponse);
+  rpc GetRootDirectoryPaths(messages.GetRootDirectoryPathsRequest) returns (messages.GetRootDirectoryPathsResponse);
   rpc ReadDirectory(messages.ReadDirectoryRequest) returns (messages.ReadDirectoryResponse);
-  rpc GetVideo(messages.GetVideoRequest) returns (messages.GetVideoResponse);
+  rpc SearchVideo(messages.SearchVideoRequest) returns (messages.SearchVideoResponse);
 
+  rpc CalculateSubtitleStatistics(messages.CalculateSubtitleStatisticsRequest) returns (messages.CalculateSubtitleStatisticsResponse);
   rpc GetSubtitle(messages.GetSubtitleRequest) returns (messages.GetSubtitleResponse);
   rpc GetSubtitleCue(messages.GetSubtitleCueRequest) returns (messages.GetSubtitleCueResponse);
   rpc GetSubtitleCueOriginalData(messages.GetSubtitleCueOriginalDataRequest) returns (messages.GetSubtitleCueOriginalDataResponse);

@@ -6,6 +6,15 @@ import "google/protobuf/duration.proto";
 
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
 
+message CalculateSubtitleStatisticsRequest {}
+
+message CalculateSubtitleStatisticsResponse {
+  int32 total_video_count = 1;
+  int32 video_with_extracted_subtitle_count = 2;
+  int32 video_with_formated_subtitle_count = 3;
+  int32 video_with_exported_subtitle_count = 4;
+}
+
 message GetSubtitleRequest {
   string id = 1;
 }
@@ -13,11 +22,12 @@ message GetSubtitleRequest {
 message GetSubtitleResponse {
   string id = 1;
   string title = 2;
-  SubtitleStage stage = 3;
-  bool is_processing = 4;
-  bool import_is_external = 5;
-  SubtitleOriginalFormat original_format = 6;
-  repeated string cue_ids = 7;
+  string language = 3;
+  SubtitleStage stage = 4;
+  bool is_processing = 5;
+  bool import_is_external = 6;
+  SubtitleOriginalFormat original_format = 7;
+  repeated string cue_ids = 8;
 }
 
 message GetSubtitleCueRequest {
@@ -38,7 +48,7 @@ message GetSubtitleCueOriginalDataRequest {
 message GetSubtitleCueOriginalDataResponse {
   string subtitle_cue_id = 1;
   string text = 2;
-  bytes png_encoded_image_data = 3;
+  repeated bytes png_encoded_images_data = 3;
 }
 
 message GetSubtitleCueSegmentRequest {

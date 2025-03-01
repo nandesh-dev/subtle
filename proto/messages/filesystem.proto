@@ -19,11 +19,11 @@ message ReadDirectoryResponse {
   repeated string video_paths = 2;
 }
 
-message GetVideoRequest {
+message SearchVideoRequest {
   string path = 1;
 }
 
-message GetVideoResponse {
+message SearchVideoResponse {
   string id = 1;
   string path = 2;
   repeated string subtitle_ids = 3;

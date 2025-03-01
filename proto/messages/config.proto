@@ -9,3 +9,9 @@ message GetConfigRequest {}
 message GetConfigResponse {
   string config = 1;
 }
+
+message UpdateConfigRequest {
+  string config = 1;
+}
+
+message UpdateConfigResponse {}
