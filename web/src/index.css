@@ -1,40 +1,97 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-input,
-textarea {
-    border: none;
-    background: none;
-    padding: 0;
-    margin: 0;
-    outline: none;
-    box-shadow: none;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-button {
-  text-align: start;
-}
+@import "tailwindcss";
 
 :root {
-    --primary-1-color: #52b69a;
-    --primary-2-color: #76c893;
-    --secondary-1-color: #ffb235;
-    --secondary-2-color: #FBBE65;
-    --neutral-1-color: #f2f7f6;
-    --neutral-2-color: #e9f1ef;
-    --neutral-3-color: #dfeae7;
-    --text-1-color: #001313;
-    --text-2-color: #fcfdfd;
+    --jade: #1FA574;
+    --jade-light: #44B98E;
+
+    --butterscotch: #FDB147;
+    --butterscotch-light: #FDC16F;
+
+    --mercury-dark: #E5E5E5;
+    --mercury: #F0F0F0;
+    --mercury-light: #F6F6F6;
+    --mercury-lighter: #FFFFFF;
+
+    --gray-dark: #191A1A;
+    --gray: #1C1D1D;
+    --gray-light: #232424;
+    --gray-lighter: #2C2D2D;
+
+    --primary: var(--jade);
+    --primary-light: var(--jade-light);
+    
+    --secondary: var(--butterscotch);
+    --secondary-light: var(--butterscotch-light);
+
+    --neutral-dark: var(--mercury-dark);
+    --neutral: var(--mercury);
+    --neutral-light: var(--mercury-light);
+    --neutral-lighter: var(--mercury-lighter);
+
+    --tertiary: var(--gray-dark);
+    --tertiary-light: var(--mercury-light);
 
     @media (prefers-color-scheme: dark) {
-        --neutral-1-color: #232424;
-        --neutral-2-color: #1c1d1d;
-        --neutral-3-color: #191a1a;
-        --text-1-color: #e4ebeb;
-        --text-2-color: #fcfdfd;
+        --neutral-dark: var(--gray-dark);
+        --neutral: var(--gray);
+        --neutral-light: var(--gray-light);
+        --neutral-lighter: var(--gray-lighter);
+
+        --tertiary: var(--mercury-light);
+    }
+}
+
+@theme {
+  --color-*: initial;
+
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-light: var(--secondary-light);
+
+  --color-neutral-dark: var(--neutral-dark);
+  --color-neutral: var(--neutral);
+  --color-neutral-light: var(--neutral-light);
+  --color-neutral-lighter: var(--neutral-lighter);
+
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-light: var(--tertiary-light);
+
+  --font-sans: "Sora";
+}
+
+@layer base {
+    * {
+        color: var(--color-tertiary)
+    }
+
+    button {
+      text-align: start;
+    }
+
+    ::-webkit-scrollbar {
+      width: calc(var(--spacing) * 2);
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-corner {
+      opacity: 0;
+    }
+
+    ::-webkit-resizer {
+      opacity: 0;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border-radius: var(--spacing); 
+      background: var(--neutral-light);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--neutral-lighter);
     }
 }

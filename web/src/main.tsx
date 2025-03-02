@@ -1,161 +1,45 @@
-import { useQuery } from '@connectrpc/connect-query'
-import { Routes, useNavigation } from './utils/navigation'
-import { Style } from './utils/style'
-import { Editor, Files, Jobs, Settings } from './section'
-import { useIsMutating } from '@tanstack/react-query'
-import { calculateSubtitleStatistics } from '../gen/proto/services/web-WebService_connectquery'
+import { Browser } from '@/src/sections/browser'
+import { Editor } from '@/src/sections/editor'
+import { FileTree } from '@/src/sections/file_tree'
+import { Header } from '@/src/sections/header'
+import { Jobs } from '@/src/sections/jobs'
+import { Settings } from '@/src/sections/settings'
+import { Statistics } from '@/src/sections/statistics'
+
+import { Route, useRoute } from './utility/navigation'
 
 export function Main() {
-    const navigation = useNavigation()
-    const currentRoute = navigation.useRoute()
-
-    const isMutating = useIsMutating()
+    const currentRoute = useRoute()
 
     return (
-        <section className="grid h-dvh w-dvw grid-rows-[auto_auto_1fr] gap-md p-xl">
-            <section className="flex max-w-full flex-row items-center gap-xl">
-                <section>
-                    <h1 className="text-xl text-text-1">Subtle</h1>
+        <section className="h-dvh w-dvw bg-neutral-dark overflow-y-hidden">
+            <section
+                className={`h-fit w-full flex flex-col transition-transform duration-200 ${currentRoute == Route.Editor && 'translate-y-[-100dvh]'}`}
+            >
+                <section className="h-dvh w-full p-8 grid grid-rows-[auto_auto_1fr] grid-cols-1">
+                    <Header />
+                    <Statistics />
+                    <section className="overflow-y-hidden overflow-x-hidden">
+                        <section
+                            className={`h-full w-fit gap-4 grid grid-rows-1 grid-cols-[repeat(3,calc(100dvw-var(--spacing)*8*2))] transition-transform duration-200 ${currentRoute == Route.Jobs && 'translate-x-[calc(-100dvw+var(--spacing)*8*2)]'} ${currentRoute == Route.Settings && 'translate-x-[calc(-200dvw+var(--spacing)*8*3)]'}`}
+                        >
+                            <section className="grid grid-cols-[calc(var(--spacing)*96)_1fr] gap-4">
+                                <FileTree />
+                                <Browser />
+                            </section>
+                            <section className="">
+                                <Jobs />
+                            </section>
+                            <section className="">
+                                <Settings />
+                            </section>
+                        </section>
+                    </section>
                 </section>
-                {isMutating ? (
-                    <div className="h-xs w-full animate-loader rounded-sm bg-gradient-to-r from-primary-2 to-primary-2 bg-[length:60%_100%] bg-no-repeat" />
-                ) : (
-                    <div className="h-xs w-full" />
-                )}
-                <NavigationBar />
-            </section>
-            <Stats />
-            {(currentRoute == Routes.Files ||
-                currentRoute == Routes.Editor) && <Files />}
-            {currentRoute == Routes.Settings && <Settings />}
-            {currentRoute == Routes.Jobs && <Jobs />}
-            {currentRoute == Routes.Editor && (
-                <section className="absolute bottom-0 left-0 right-0 top-0 bg-[rgba(0,0,0,0.1)] p-xl">
+                <section className="h-dvh p-8 pt-0">
                     <Editor />
                 </section>
-            )}
-        </section>
-    )
-}
-
-const NavigationButtons = [
-    {
-        route: Routes.Files,
-        name: 'Files',
-    },
-    {
-        route: Routes.Settings,
-        name: 'Settings',
-    },
-    {
-        route: Routes.Jobs,
-        name: 'Jobs',
-    },
-]
-
-function NavigationBar() {
-    const navigation = useNavigation()
-    const currentRoute = navigation?.useRoute()
-
-    return (
-        <section className="flex flex-row rounded-xl bg-neutral-2">
-            {NavigationButtons.map(({ route, name }) => {
-                return (
-                    <button
-                        className="rounded-xl px-xl py-md text-md"
-                        style={
-                            route == currentRoute
-                                ? {
-                                      background: Style.colors.primary[1],
-                                      color: Style.colors.text[2],
-                                  }
-                                : { color: Style.colors.text[1] }
-                        }
-                        key={name}
-                        onClick={() => {
-                            navigation?.navigate(route)
-                        }}
-                    >
-                        {name}
-                    </button>
-                )
-            })}
-        </section>
-    )
-}
-
-function Stats() {
-    const UPDATE_INTERVAL = 2 * 1000
-    const calculateSubtitleStatisticsQuery = useQuery(
-        calculateSubtitleStatistics,
-        {},
-        {
-            refetchInterval: UPDATE_INTERVAL,
-        }
-    )
-
-    const Stat = ({
-        name,
-        value,
-        total,
-    }: {
-        name: string
-        value?: number
-        total?: number
-    }) => {
-        if (value == undefined || total == undefined) {
-            ;<div className="h-[8rem] w-full max-w-[16rem] animate-pulse rounded-sm bg-neutral-2" />
-        }
-        return (
-            <div className="flex h-[8rem] w-full max-w-[16rem] flex-col">
-                <p className="text-lg text-text-1">{name}</p>
-                <p className="text-2xl font-light text-text-1">{value} / {total}</p>
-            </div>
-        )
-    }
-
-    return (
-        <section className="flex flex-row justify-center gap-2xl py-2xl">
-            {!calculateSubtitleStatisticsQuery.isSuccess ? (
-                <>
-                    <Stat name="Exported" />
-                    <Stat name="Formated" />
-                    <Stat name="Extracted" />
-                </>
-            ) : (
-                <>
-                    <Stat
-                        name="Exported"
-                        value={
-                            calculateSubtitleStatisticsQuery.data
-                                .videoWithExportedSubtitleCount
-                        }
-                        total={
-                            calculateSubtitleStatisticsQuery.data.totalVideoCount
-                        }
-                    />
-                    <Stat
-                        name="Formated"
-                        value={
-                            calculateSubtitleStatisticsQuery.data
-                                .videoWithFormatedSubtitleCount
-                        }
-                        total={
-                            calculateSubtitleStatisticsQuery.data.totalVideoCount
-                        }
-                    />
-                    <Stat
-                        name="Extracted"
-                        value={
-                            calculateSubtitleStatisticsQuery.data
-                                .videoWithExtractedSubtitleCount
-                        }
-                        total={
-                            calculateSubtitleStatisticsQuery.data.totalVideoCount
-                        }
-                    />
-                </>
-            )}
+            </section>
         </section>
     )
 }

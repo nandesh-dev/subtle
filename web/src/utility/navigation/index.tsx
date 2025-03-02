@@ -1,21 +1,23 @@
 import {
-    createContext,
     ReactNode,
+    createContext,
     useContext,
     useEffect,
     useState,
 } from 'react'
 
-export enum Routes {
-    Files = 'files',
+export enum Route {
+    Files = '',
     Settings = 'settings',
     Jobs = 'jobs',
     Editor = 'editor',
 }
 
-const HomeRoute = Routes.Files
+//TODO Allow opening it new tab while pressing ctrl
 
-type EventListener = (route: Routes, searchParams: URLSearchParams) => void
+const HomeRoute = Route.Files
+
+type EventListener = (route: Route, searchParams: URLSearchParams) => void
 
 export class Navigation {
     private eventListeners: EventListener[]
@@ -28,11 +30,11 @@ export class Navigation {
     }
 
     back() {
-      window.history.back()
-      this.updateEventListeners()
+        window.history.back()
+        this.updateEventListeners()
     }
 
-    navigate(route: Routes, searchParams?: URLSearchParams) {
+    navigate(route: Route, searchParams?: URLSearchParams) {
         const newURL = new URL(window.location.href)
 
         newURL.pathname = `/${route}`
@@ -107,8 +109,8 @@ export class Navigation {
         const url = new URL(window.location.href)
         const pathname = url.pathname.replace(/^\//, '')
 
-        if (Object.values(Routes).includes(pathname as Routes)) {
-            return pathname as Routes
+        if (Object.values(Route).includes(pathname as Route)) {
+            return pathname as Route
         }
 
         return HomeRoute
@@ -130,8 +132,18 @@ export function NavigationProvider({
 export function useNavigation() {
     let navigation = useContext(NavigationContext)
     if (navigation == null) {
-      throw new Error("Navigation is not defined yet!")
+        throw new Error('Navigation is not defined yet!')
     }
 
     return navigation
+}
+
+export function useRoute() {
+    const navigation = useNavigation()
+    return navigation.useRoute()
+}
+
+export function useSearchParams() {
+    const navigation = useNavigation()
+    return navigation.useSearchParams()
 }

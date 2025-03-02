@@ -1,17 +1,23 @@
 import { useMutation, useQuery } from '@connectrpc/connect-query'
 import { useRef } from 'react'
+
 import {
     getConfig,
     updateConfig,
-} from '../../gen/proto/services/web-WebService_connectquery'
+} from '@/gen/proto/services/web-WebService_connectquery'
 
 export function Settings() {
     const getConfigQuery = useQuery(getConfig)
     const updateConfigMutation = useMutation(updateConfig)
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
+    /*
+        <section className="h-full flex flex-col rounded-xl bg-neutral p-4">
+            <h2 className="text-lg">Jobs</h2>
+        </section>
+        */
     return (
-        <div className="relative flex h-full flex-col gap-md overflow-hidden rounded-md bg-neutral-2 p-xl">
+        <div className="relative flex h-full flex-col gap-md overflow-hidden rounded-xl bg-neutral p-4">
             <h2 className="text-lg text-text-1">Settings</h2>
             {!getConfigQuery.isSuccess ? (
                 <div className="h-full animate-pulse rounded-sm bg-neutral-1" />
