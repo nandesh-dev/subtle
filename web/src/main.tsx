@@ -16,12 +16,16 @@ export function Main() {
             <section
                 className={`h-fit w-full flex flex-col transition-transform duration-200 ${currentRoute == Route.Editor && 'translate-y-[-100dvh]'}`}
             >
-                <section className="h-dvh w-full p-8 grid grid-rows-[auto_auto_1fr] grid-cols-1">
-                    <Header />
-                    <Statistics />
+                <section className="h-dvh w-full py-8 grid grid-rows-[auto_auto_1fr] grid-cols-1">
+                    <section className="px-8">
+                        <Header />
+                    </section>
+                    <section className="px-8">
+                        <Statistics />
+                    </section>
                     <section className="overflow-y-hidden overflow-x-hidden">
                         <section
-                            className={`h-full w-fit gap-4 grid grid-rows-1 grid-cols-[repeat(3,calc(100dvw-var(--spacing)*8*2))] transition-transform duration-200 ${currentRoute == Route.Jobs && 'translate-x-[calc(-100dvw+var(--spacing)*8*2)]'} ${currentRoute == Route.Settings && 'translate-x-[calc(-200dvw+var(--spacing)*8*3)]'}`}
+                            className={`h-full w-fit px-8 gap-4 grid grid-rows-1 grid-cols-[repeat(3,calc(100dvw-var(--spacing)*8*2))] transition-transform duration-200 ${currentRoute == Route.Jobs && 'translate-x-[calc(-100dvw+var(--spacing)*8*2-var(--spacing)*4)]'} ${currentRoute == Route.Settings && 'translate-x-[calc(-200dvw+var(--spacing)*8*4-var(--spacing)*4*2)]'}`}
                         >
                             <section className="grid grid-cols-[calc(var(--spacing)*96)_1fr] gap-4">
                                 <FileTree />
