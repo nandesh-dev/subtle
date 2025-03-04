@@ -4,9 +4,11 @@ import { createGrpcWebTransport } from '@connectrpc/connect-web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode } from 'react'
 
-import { WebService } from '../../../gen/proto/services/web_pb'
+import { WebService } from '@/gen/proto/services/web_pb'
+
 import { getConfig, updateConfig } from './config'
 import { getRootDirectoryPaths, readDirectory, searchVideo } from './filesystem'
+import { getJob, getJobs } from './job'
 import { mockApiDelayInterceptor } from './mock_api_delay_interceptor'
 import {
     calculateSubtitleStatistics,
@@ -47,6 +49,9 @@ export class Api {
                         getSubtitleCue,
                         getSubtitleCueOriginalData,
                         getSubtitleCueSegment,
+
+                        getJobs,
+                        getJob,
                     })
                 },
                 { transport: { interceptors: [mockApiDelayInterceptor] } }
