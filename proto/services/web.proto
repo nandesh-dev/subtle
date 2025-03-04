@@ -5,6 +5,7 @@ package services;
 import "messages/config.proto";
 import "messages/filesystem.proto";
 import "messages/subtitle.proto";
+import "messages/job.proto";
 
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/services";
 
@@ -21,4 +22,7 @@ service WebService {
   rpc GetSubtitleCue(messages.GetSubtitleCueRequest) returns (messages.GetSubtitleCueResponse);
   rpc GetSubtitleCueOriginalData(messages.GetSubtitleCueOriginalDataRequest) returns (messages.GetSubtitleCueOriginalDataResponse);
   rpc GetSubtitleCueSegment(messages.GetSubtitleCueSegmentRequest) returns (messages.GetSubtitleCueSegmentResponse);
+
+  rpc GetJobs(messages.GetJobsRequest) returns (messages.GetJobsResponse);
+  rpc GetJob(messages.GetJobRequest) returns (messages.GetJobResponse);
 }

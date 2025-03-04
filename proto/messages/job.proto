@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package messages;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
+
+message GetJobsRequest {}
+
+message GetJobsResponse {
+  repeated string job_ids = 1;
+}
+
+message GetJobRequest {
+  string id = 1;
+}
+
+message GetJobResponse {
+  string id = 1;
+  int32 sequence_number = 2;
+  string name = 3;
+  string description = 4;
+  bool is_running = 5;
+  google.protobuf.Timestamp last_run = 6;
+}
