@@ -2,6 +2,8 @@ import { useQuery } from '@connectrpc/connect-query'
 
 import { searchVideo } from '@/gen/proto/services/web-WebService_connectquery'
 
+import { LoadingBlock } from '@/src/components/loading_block'
+
 import { useSearchParams } from '@/src/utility/navigation'
 
 import { Subtitle } from './subtitle'
@@ -11,30 +13,46 @@ export function VideoView() {
 
     const getVideoQuery = useQuery(searchVideo, { path: pathSearchParam || '' })
 
+    if (getVideoQuery.isError) {
+        return (
+            <section className="flex flex-col rounded-xl bg-neutral p-4">
+                <h2 className="text-lg mb-2">Subtitles</h2>
+                <section className=" flex items-center justify-center">
+                    <p>{getVideoQuery.error.message}</p>
+                </section>
+            </section>
+        )
+    }
+
+    if (getVideoQuery.isPending) {
+        return (
+            <section className="flex flex-col rounded-xl bg-neutral p-4">
+                <h2 className="text-lg">Subtitles</h2>
+                <section className="h-full flex items-center justify-center gap-8">
+                    <LoadingBlock className="bg-neutral-light size-16" />
+                    <LoadingBlock className="bg-neutral-light size-16" />
+                    <LoadingBlock className="bg-neutral-light size-16" />
+                </section>
+            </section>
+        )
+    }
+
     return (
-        <div className="relative flex flex-col gap-lg rounded-md bg-neutral-2 p-xl">
-            <section className="flex flex-col gap-md">
-                <h2 className="text-lg text-text-1">Subtitles</h2>
-            </section>
-            <section className="flex flex-col gap-md">
-                {!getVideoQuery.isSuccess ? (
-                    <>
-                        <div className="h-2xl animate-pulse rounded-sm bg-neutral-1" />
-                        <div className="h-2xl animate-pulse rounded-sm bg-neutral-1" />
-                    </>
-                ) : (
-                    getVideoQuery.data.subtitleIds.map((subtitleId) => {
-                        return <Subtitle key={subtitleId} id={subtitleId} />
-                    })
-                )}
-            </section>
-            <div className="absolute bottom-0 right-0 rounded-tl-md bg-neutral-2 p-md">
-                {!getVideoQuery.isSuccess ? (
-                    <div className="h-lg w-[24rem] animate-pulse rounded-sm bg-neutral-1" />
-                ) : (
-                    <p className="text-xs text-text-1"> {pathSearchParam}</p>
-                )}
-            </div>
-        </div>
+        <section className="flex min-h-32 flex-col rounded-xl bg-neutral p-4 overflow-hidden gap-2">
+            <h2 className="text-lg">Subtitles</h2>
+            {getVideoQuery.data.subtitleIds.length > 0 ? (
+                <section className="h-full overflow-y-auto mt-2">
+                    <section className="flex flex-col gap-2 w-full h-fit">
+                        {getVideoQuery.data.subtitleIds.map((subtitleId) => {
+                            return <Subtitle id={subtitleId} key={subtitleId} />
+                        })}
+                    </section>
+                </section>
+            ) : (
+                <section className="h-full flex items-center justify-center">
+                    <p className="text-sm">No subtitles found!</p>
+                </section>
+            )}
+        </section>
     )
 }
