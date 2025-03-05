@@ -17,7 +17,7 @@ export function Subtitle({ id }: { id: string }) {
 
     if (getSubtitleQuery.isError) {
         return (
-            <section className="h-24 flex bg-neutral-light rounded-lg p-4 items-center justify-center">
+            <section className="h-32 flex bg-neutral-light rounded-lg p-4 items-center justify-center">
                 <p>{getSubtitleQuery.error.message}</p>
             </section>
         )
@@ -25,7 +25,7 @@ export function Subtitle({ id }: { id: string }) {
 
     if (getSubtitleQuery.isPending) {
         return (
-            <section className="h-24 flex bg-neutral-light rounded-lg p-4 items-center justify-center flex-row gap-4">
+            <section className="h-32 flex bg-neutral-light rounded-lg p-4 items-center justify-center flex-row gap-4">
                 <LoadingBlock className="bg-neutral-lighter size-8" />
                 <LoadingBlock className="bg-neutral-lighter size-8" />
                 <LoadingBlock className="bg-neutral-lighter size-8" />
@@ -88,17 +88,18 @@ export function Subtitle({ id }: { id: string }) {
 
     return (
         <button
-            className="group flex flex-col bg-neutral-light rounded-lg p-4"
+            className="group flex flex-col bg-neutral-light rounded-lg py-4"
             onClick={onClick}
         >
-            <section className="w-full flex flex-row justify-between">
+            <section className="w-full flex flex-row justify-between px-4">
                 <p>{getSubtitleQuery.data.title}</p>
                 <section className="flex flex-row gap-8">
                     <p>{language}</p>
                     <p>{format}</p>
                 </section>
             </section>
-            <section className="w-full grid grid-cols-[auto_1fr_auto_1fr_auto_1fr_auto] items-center gap-2 p-2">
+            <div className="h-px bg-neutral w-full my-4"/>
+            <section className="w-full grid grid-cols-[auto_1fr_auto_1fr_auto_1fr_auto] items-center gap-2 px-6 py-2">
                 <div
                     className={`bg-neutral-light size-4 rounded-full border-4 ${progress >= 1 ? 'border-primary-light' : 'border-neutral-lighter'}`}
                 />
@@ -121,7 +122,7 @@ export function Subtitle({ id }: { id: string }) {
                     className={`bg-neutral-light size-4 rounded-full border-4 ${progress >= 7 ? 'border-primary-light' : 'border-neutral-lighter'}`}
                 />
             </section>
-            <section className="w-full grid grid-cols-[6fr_11fr_11fr_6fr]">
+            <section className="w-full grid grid-cols-[6fr_11fr_11fr_6fr] px-4">
                 <p className="text-sm text-start">
                     {getSubtitleQuery.data.importIsExternal
                         ? 'Imported'

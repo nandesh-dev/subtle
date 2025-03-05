@@ -52,9 +52,9 @@ export function Directory({
     if (readDirectoryQuery.isPending) {
         return (
             <section className="flex flex-row gap-2">
-                <LoadingBlock className="bg-neutral size-8" />
-                <LoadingBlock className="bg-neutral size-8" />
-                <LoadingBlock className="bg-neutral size-8" />
+                <LoadingBlock className="bg-neutral size-6" />
+                <LoadingBlock className="bg-neutral size-6" />
+                <LoadingBlock className="bg-neutral size-6" />
             </section>
         )
     }
