@@ -8,7 +8,7 @@ import { WebService } from '@/gen/proto/services/web_pb'
 
 import { getConfig, updateConfig } from './config'
 import { getRootDirectoryPaths, readDirectory, searchVideo } from './filesystem'
-import { getJob, getJobs } from './job'
+import { getJob, getJobs, getJobLogs, getJobLog } from './job'
 import { mockApiDelayInterceptor } from './mock_api_delay_interceptor'
 import {
     calculateSubtitleStatistics,
@@ -52,6 +52,8 @@ export class Api {
 
                         getJobs,
                         getJob,
+                        getJobLogs,
+                        getJobLog
                     })
                 },
                 { transport: { interceptors: [mockApiDelayInterceptor] } }
