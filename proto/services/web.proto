@@ -25,4 +25,6 @@ service WebService {
 
   rpc GetJobs(messages.GetJobsRequest) returns (messages.GetJobsResponse);
   rpc GetJob(messages.GetJobRequest) returns (messages.GetJobResponse);
+  rpc GetJobLogs(messages.GetJobLogsRequest) returns (messages.GetJobLogsResponse);
+  rpc GetJobLog(messages.GetJobLogRequest) returns (messages.GetJobLogResponse);
 }

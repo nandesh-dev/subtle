@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package messages;
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
@@ -23,4 +24,30 @@ message GetJobResponse {
   string description = 4;
   bool is_running = 5;
   google.protobuf.Timestamp last_run = 6;
+}
+
+message GetJobLogsRequest {
+  optional int32 limit = 1;
+  // If set, returns only logs which are OLDER than the specified log
+  optional string older_than_log_id = 2;
+  // If set, returns only logs which are NEWER than the specified log
+  optional string newer_than_log_id = 3;
+}
+
+message GetJobLogsResponse {
+  repeated string ids = 1;
+}
+
+message GetJobLogRequest {
+  string id = 1;
+}
+
+message GetJobLogResponse {
+  string id = 1;
+  string job_id = 2;
+  string job_name = 3;
+  bool isSuccess = 4;
+  string errorMessage = 5;
+  google.protobuf.Timestamp start_timestamp = 6;
+  google.protobuf.Duration duration = 7;
 }
