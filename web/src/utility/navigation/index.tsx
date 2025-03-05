@@ -11,6 +11,22 @@ export enum Route {
     Settings = 'settings',
     Jobs = 'jobs',
     Editor = 'editor',
+    Unknown = 'unknown',
+}
+
+function mapPathnameToRoute(pathname: string) {
+    switch (pathname) {
+        case `/${Route.Files}`:
+            return Route.Files
+        case `/${Route.Settings}`:
+            return Route.Settings
+        case `/${Route.Jobs}`:
+            return Route.Jobs
+        case `/${Route.Editor}`:
+            return Route.Editor
+        default:
+            return Route.Unknown
+    }
 }
 
 //TODO Allow opening it new tab while pressing ctrl
@@ -21,20 +37,28 @@ type EventListener = (route: Route, searchParams: URLSearchParams) => void
 
 export class Navigation {
     private eventListeners: EventListener[]
+    private routeLastSearchParamsMap: Map<Route, URLSearchParams>
     constructor() {
         this.eventListeners = []
+        this.routeLastSearchParamsMap = new Map()
 
         window.addEventListener('popstate', () => {
             this.updateEventListeners()
         })
     }
 
-    back() {
+    public back() {
         window.history.back()
         this.updateEventListeners()
     }
 
-    navigate(route: Route, searchParams?: URLSearchParams) {
+    public navigate(route: Route, searchParams?: URLSearchParams) {
+        const oldURL = new URL(window.location.href)
+        this.routeLastSearchParamsMap.set(
+            mapPathnameToRoute(oldURL.pathname),
+            oldURL.searchParams
+        )
+
         const newURL = new URL(window.location.href)
 
         newURL.pathname = `/${route}`
@@ -43,6 +67,10 @@ export class Navigation {
         window.history.pushState({}, '', newURL)
 
         this.updateEventListeners()
+    }
+
+    public getRouteLastSearchParams(route: Route) {
+        return this.routeLastSearchParamsMap.get(route) || new URLSearchParams()
     }
 
     public useRoute() {

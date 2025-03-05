@@ -7,7 +7,7 @@ export function Button({ name, route }: { name: string; route: Route }) {
     const isSelectedRouteButton = currentRoute == route
 
     const navigate = () => {
-        navigation.navigate(route, new URLSearchParams())
+        navigation.navigate(route, navigation.getRouteLastSearchParams(route))
     }
 
     return (
