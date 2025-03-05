@@ -15,23 +15,12 @@ import (
 	"github.com/nandesh-dev/subtle/pkgs/configuration"
 )
 
-type Job struct {
-	name string
-}
-
-var (
-	Scan    Job = Job{name: "scan"}
-	Extract Job = Job{name: "extract"}
-	Format  Job = Job{name: "format"}
-	Export  Job = Job{name: "export"}
-)
-
-var Jobs = []Job{Scan, Extract, Format, Export}
+var databaseJobCodes = []jobschema.Code{jobschema.CodeScan, jobschema.CodeExtract, jobschema.CodeFormat, jobschema.CodeExport}
 
 func SetupDatabase(db *ent.Client) error {
-	for _, job := range Jobs {
+	for _, jobCode := range databaseJobCodes {
 		count, err := db.JobSchema.Update().
-			Where(jobschema.Name(job.name)).
+			Where(jobschema.CodeEQ(jobCode)).
 			SetIsRunning(false).
 			Save(context.Background())
 		if err != nil {
@@ -40,7 +29,8 @@ func SetupDatabase(db *ent.Client) error {
 
 		if count == 0 {
 			if err := db.JobSchema.Create().
-				SetName(job.name).
+				SetCode(jobCode).
+				SetLastRun(time.Now()).
 				Exec(context.Background()); err != nil {
 				return fmt.Errorf("cannot add job status to database: %w", err)
 			}
@@ -75,8 +65,8 @@ func StartJobRunTicker(ctx context.Context, logger *slog.Logger, configFile *con
 	jobRunTicker := time.NewTicker(jobRunInterval)
 	defer jobRunTicker.Stop()
 
-	for _, job := range Jobs {
-		Run(job, ctx, logger, configFile, db)
+	for _, jobCode := range databaseJobCodes {
+		Run(jobCode, ctx, logger, configFile, db)
 	}
 
 	for {
@@ -105,18 +95,18 @@ func StartJobRunTicker(ctx context.Context, logger *slog.Logger, configFile *con
 			}
 
 		case <-jobRunTicker.C:
-			for _, job := range Jobs {
-				Run(job, ctx, logger, configFile, db)
+			for _, jobCode := range databaseJobCodes {
+				Run(jobCode, ctx, logger, configFile, db)
 			}
 		}
 	}
 }
 
-func Run(job Job, ctx context.Context, logger *slog.Logger, configFile *configuration.File, db *ent.Client) {
-	logger = logger.With("job", job.name)
+func Run(jobCode jobschema.Code, ctx context.Context, logger *slog.Logger, configFile *configuration.File, db *ent.Client) {
+	logger = logger.With("job", jobCode)
 
 	if err := db.JobSchema.Update().
-		Where(jobschema.Name(job.name)).
+		Where(jobschema.CodeEQ(jobCode)).
 		SetIsRunning(true).
 		Exec(context.Background()); err != nil {
 		logger.Error("cannot update job to running", "err", err)
@@ -125,14 +115,14 @@ func Run(job Job, ctx context.Context, logger *slog.Logger, configFile *configur
 
 	logger.Info("running job")
 
-	switch job {
-	case Scan:
+	switch jobCode {
+	case jobschema.CodeScan:
 		scan.Run(ctx, logger, configFile, db)
-	case Extract:
+	case jobschema.CodeExtract:
 		extract.Run(ctx, logger, configFile, db)
-	case Format:
+	case jobschema.CodeFormat:
 		format.Run(ctx, logger, configFile, db)
-	case Export:
+	case jobschema.CodeExport:
 		export.Run(ctx, logger, configFile, db)
 	default:
 		logger.Warn("job not found")
@@ -141,7 +131,7 @@ func Run(job Job, ctx context.Context, logger *slog.Logger, configFile *configur
 	logger.Info("job completed")
 
 	if err := db.JobSchema.Update().
-		Where(jobschema.Name(job.name)).
+		Where(jobschema.CodeEQ(jobCode)).
 		SetIsRunning(false).
 		Exec(context.Background()); err != nil {
 		logger.Error("cannot update job to stopped", "err", err)

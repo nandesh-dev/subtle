@@ -22,8 +22,11 @@ func (JobSchema) Annotations() []schema.Annotation {
 // Fields of the JobSchema.
 func (JobSchema) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.Bool("is_running"),
+		field.Enum("code").
+			Values("scan", "extract", "format", "export"),
+		field.Bool("is_running").
+			Default(false),
+		field.Time("last_run"),
 	}
 }
 
