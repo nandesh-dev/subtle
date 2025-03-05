@@ -14,15 +14,15 @@ import {
 
 export async function getJobs({}: GetJobsRequest) {
     return create(GetJobsResponseSchema, {
-        jobIds: ['scan', 'extract', 'format', 'export'],
+        jobCodes: ['scan', 'extract', 'format', 'export'],
     })
 }
 
-export async function getJob({ id }: GetJobRequest) {
-    switch (id) {
+export async function getJob({ code }: GetJobRequest) {
+    switch (code) {
         case 'extract':
             return create(GetJobResponseSchema, {
-                id,
+                code,
                 sequenceNumber: 2,
                 name: 'Extracting',
                 description:
@@ -32,7 +32,7 @@ export async function getJob({ id }: GetJobRequest) {
             })
         case 'format':
             return create(GetJobResponseSchema, {
-                id,
+                code,
                 sequenceNumber: 3,
                 name: 'Formating',
                 description:
@@ -42,7 +42,7 @@ export async function getJob({ id }: GetJobRequest) {
             })
         case 'export':
             return create(GetJobResponseSchema, {
-                id,
+                code,
                 sequenceNumber: 4,
                 name: 'Exporting',
                 description:
@@ -52,7 +52,7 @@ export async function getJob({ id }: GetJobRequest) {
             })
         default:
             return create(GetJobResponseSchema, {
-                id,
+                code,
                 sequenceNumber: 1,
                 name: 'Scanning',
                 description:
@@ -120,7 +120,7 @@ export async function getJobLog({ id }: GetJobLogRequest) {
     if (id == '0') {
         return create(GetJobLogResponseSchema, {
             id,
-            jobId: 'scan',
+            jobCode: 'scan',
             jobName: 'Scanning',
             isSuccess: false,
             errorMessage: 'Failed to read file',
@@ -131,7 +131,7 @@ export async function getJobLog({ id }: GetJobLogRequest) {
 
     return create(GetJobLogResponseSchema, {
         id,
-        jobId: 'scan',
+        jobCode: 'scan',
         jobName: 'Scanning',
         isSuccess: true,
         startTimestamp: timestampNow(),

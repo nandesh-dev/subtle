@@ -36,8 +36,8 @@ export function Status() {
             <h2 className="text-lg">Job Status</h2>
                 <section className="h-full overflow-y-auto mt-2">
                     <section className="flex flex-col gap-2 w-full h-fit">
-                        {getJobsQuery.data.jobIds.map((jobId) => {
-                            return <Job id={jobId} key={jobId} />
+                        {getJobsQuery.data.jobCodes.map((jobCode) => {
+                            return <Job code={jobCode} key={jobCode} />
                         })}
                     </section>
                 </section>

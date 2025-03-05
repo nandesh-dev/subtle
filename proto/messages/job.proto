@@ -10,15 +10,15 @@ option go_package = "github.com/nandesh-dev/subtle/generated/proto/messages";
 message GetJobsRequest {}
 
 message GetJobsResponse {
-  repeated string job_ids = 1;
+  repeated string job_codes = 1;
 }
 
 message GetJobRequest {
-  string id = 1;
+  string code = 1;
 }
 
 message GetJobResponse {
-  string id = 1;
+  string code = 1;
   int32 sequence_number = 2;
   string name = 3;
   string description = 4;
@@ -44,7 +44,7 @@ message GetJobLogRequest {
 
 message GetJobLogResponse {
   string id = 1;
-  string job_id = 2;
+  string job_code = 2;
   string job_name = 3;
   bool isSuccess = 4;
   string errorMessage = 5;

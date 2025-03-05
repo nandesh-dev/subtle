@@ -3,11 +3,11 @@ import { useQuery } from '@connectrpc/connect-query'
 import { getJob } from '@/gen/proto/services/web-WebService_connectquery'
 
 type JobOptions = {
-    id: string
+    code: string
 }
 
-export function Job({ id }: JobOptions) {
-    const getJobQuery = useQuery(getJob, { id })
+export function Job({ code }: JobOptions) {
+    const getJobQuery = useQuery(getJob, { code })
 
     if (!getJobQuery.isSuccess) return
 
