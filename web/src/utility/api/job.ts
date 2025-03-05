@@ -122,8 +122,6 @@ export async function getJobLog({ id }: GetJobLogRequest) {
             id,
             jobCode: 'scan',
             jobName: 'Scanning',
-            isSuccess: false,
-            errorMessage: 'Failed to read file',
             startTimestamp: timestampNow(),
             duration: { seconds: BigInt(10000) },
         })
@@ -133,7 +131,6 @@ export async function getJobLog({ id }: GetJobLogRequest) {
         id,
         jobCode: 'scan',
         jobName: 'Scanning',
-        isSuccess: true,
         startTimestamp: timestampNow(),
         duration: { seconds: BigInt(10000) },
     })

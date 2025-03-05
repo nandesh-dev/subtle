@@ -46,8 +46,6 @@ message GetJobLogResponse {
   string id = 1;
   string job_code = 2;
   string job_name = 3;
-  bool isSuccess = 4;
-  string errorMessage = 5;
-  google.protobuf.Timestamp start_timestamp = 6;
-  google.protobuf.Duration duration = 7;
+  google.protobuf.Timestamp start_timestamp = 4;
+  google.protobuf.Duration duration = 5;
 }

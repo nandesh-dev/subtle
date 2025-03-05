@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -15,7 +16,7 @@ type JobSchema struct {
 // Annotations of the JobSchema.
 func (JobSchema) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "jobs"},
+		entsql.Annotation{Table: "job"},
 	}
 }
 
@@ -32,5 +33,7 @@ func (JobSchema) Fields() []ent.Field {
 
 // Edges of the JobSchema.
 func (JobSchema) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("logs", JobLogSchema.Type),
+	}
 }

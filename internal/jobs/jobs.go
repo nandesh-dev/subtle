@@ -105,15 +105,21 @@ func StartJobRunTicker(ctx context.Context, logger *slog.Logger, configFile *con
 func Run(jobCode jobschema.Code, ctx context.Context, logger *slog.Logger, configFile *configuration.File, db *ent.Client) {
 	logger = logger.With("job", jobCode)
 
-	if err := db.JobSchema.Update().
+	jobEntry, err := db.JobSchema.Query().
 		Where(jobschema.CodeEQ(jobCode)).
-		SetIsRunning(true).
-		Exec(context.Background()); err != nil {
+		Only(context.Background())
+	if err != nil {
+		logger.Error("cannot get job from database", "err", err)
+		return
+	}
+
+	if err := jobEntry.Update().SetIsRunning(true).Exec(context.Background()); err != nil {
 		logger.Error("cannot update job to running", "err", err)
 		return
 	}
 
 	logger.Info("running job")
+	startTimestamp := time.Now()
 
 	switch jobCode {
 	case jobschema.CodeScan:
@@ -128,13 +134,21 @@ func Run(jobCode jobschema.Code, ctx context.Context, logger *slog.Logger, confi
 		logger.Warn("job not found")
 	}
 
+	duration := time.Since(startTimestamp)
 	logger.Info("job completed")
 
-	if err := db.JobSchema.Update().
-		Where(jobschema.CodeEQ(jobCode)).
+	if err := jobEntry.Update().
 		SetIsRunning(false).
 		Exec(context.Background()); err != nil {
 		logger.Error("cannot update job to stopped", "err", err)
 		return
+	}
+
+	if err := db.JobLogSchema.Create().
+		SetStartTimestamp(startTimestamp).
+		SetDuration(int(duration)).
+    AddJob(jobEntry).
+		Exec(context.Background()); err != nil {
+		logger.Error("cannot add job log to database", "err", err)
 	}
 }
