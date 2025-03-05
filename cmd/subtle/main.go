@@ -50,7 +50,10 @@ func main() {
 	}
 
 	logger.Info("setting up jobs in database")
-	jobs.SetupDatabase(db)
+	if err := jobs.SetupDatabase(db); err != nil {
+		logger.Error("error setting up jobs in database", "err", err)
+		return
+	}
 
 	logger.Info("running jobs")
 	go jobs.StartJobRunTicker(context.Background(), logger, configFile, db)
