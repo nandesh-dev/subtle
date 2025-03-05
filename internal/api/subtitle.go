@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 
 	"connectrpc.com/connect"
@@ -172,7 +173,7 @@ func (h WebServiceHandler) GetSubtitleCueOriginalData(ctx context.Context, req *
 	return connect.NewResponse(&messages.GetSubtitleCueOriginalDataResponse{
 		SubtitleCueId: req.Msg.SubtitleCueId,
 		//TODO Add original text
-    PngEncodedImagesData: originalImagesData,
+		PngEncodedImagesData: originalImagesData,
 	}), nil
 }
 
@@ -192,4 +193,20 @@ func (h WebServiceHandler) GetSubtitleCueSegment(ctx context.Context, req *conne
 		Id:   req.Msg.Id,
 		Text: subtitleCueSegmentEntry.Text,
 	}), nil
+}
+
+// FOR DEVELOPMENT USE ONLY
+func (h WebServiceHandler) DeleteAllExportedSubtitleFiles(ctx context.Context, req *connect.Request[messages.DeleteAllExportedSubtitleFilesRequest]) (*connect.Response[messages.DeleteAllExportedSubtitleFilesResponse], error) {
+	exportedSubtitleEntries, err := h.db.SubtitleSchema.Query().Where(subtitleschema.StageEQ(subtitleschema.StageExported)).All(h.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get exported subtitles from database, err: %w", err)
+	}
+
+	for _, exportedSubtitleEntry := range exportedSubtitleEntries {
+    if err := os.Remove(*exportedSubtitleEntry.ExportPath); err != nil {
+      fmt.Printf("ERROR DELETING SUBTITLE FILE, err: %v\n", err)
+    }
+	}
+
+	return connect.NewResponse(&messages.DeleteAllExportedSubtitleFilesResponse{}), nil
 }

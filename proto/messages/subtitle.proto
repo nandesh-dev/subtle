@@ -60,6 +60,10 @@ message GetSubtitleCueSegmentResponse {
   string text = 2;
 }
 
+message DeleteAllExportedSubtitleFilesRequest {}
+
+message DeleteAllExportedSubtitleFilesResponse {}
+
 enum SubtitleStage {
   SUBTITLE_STAGE_UNSPECIFIED = 0;
   SUBTITLE_STAGE_DETECTED = 1;

@@ -22,6 +22,8 @@ service WebService {
   rpc GetSubtitleCue(messages.GetSubtitleCueRequest) returns (messages.GetSubtitleCueResponse);
   rpc GetSubtitleCueOriginalData(messages.GetSubtitleCueOriginalDataRequest) returns (messages.GetSubtitleCueOriginalDataResponse);
   rpc GetSubtitleCueSegment(messages.GetSubtitleCueSegmentRequest) returns (messages.GetSubtitleCueSegmentResponse);
+  // FOR DEVELOPMENT USE ONLY
+  rpc DeleteAllExportedSubtitleFiles(messages.DeleteAllExportedSubtitleFilesRequest) returns (messages.DeleteAllExportedSubtitleFilesResponse);
 
   rpc GetJobs(messages.GetJobsRequest) returns (messages.GetJobsResponse);
   rpc GetJob(messages.GetJobRequest) returns (messages.GetJobResponse);
