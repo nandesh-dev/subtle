@@ -18,7 +18,6 @@ func (h WebServiceHandler) GetRootDirectoryPaths(ctx context.Context, req *conne
 	}
 
 	paths := make([]string, 0, len(config.Job.Scanning))
-
 	for _, scaningGroup := range config.Job.Scanning {
 		paths = append(paths, scaningGroup.DirectoryPath)
 	}
@@ -41,7 +40,7 @@ func (h WebServiceHandler) ReadDirectory(ctx context.Context, req *connect.Reque
 
 	return connect.NewResponse(&messages.ReadDirectoryResponse{
 		ChildrenDirectoryPaths: directory.ChildrenPaths,
-    VideoPaths: videoFilepaths,
+		VideoPaths:             videoFilepaths,
 	}), nil
 }
 
@@ -51,19 +50,19 @@ func (h WebServiceHandler) SearchVideo(ctx context.Context, req *connect.Request
 		return nil, fmt.Errorf("cannot get video entry from database, err: %v", err)
 	}
 
-	subtitleEntries, err := videoEntry.QuerySubtitles().All(h.ctx)
+	subtitleEntryIds, err := videoEntry.QuerySubtitles().IDs(h.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get subtitle entries from database, err: %v", err)
 	}
 
-	subtitleIds := make([]string, 0, len(subtitleEntries))
-	for _, subtitleEntry := range subtitleEntries {
-		subtitleIds = append(subtitleIds,  strconv.FormatInt(int64(subtitleEntry.ID), 10))
+	subtitleIds := make([]string, len(subtitleEntryIds))
+	for i, subtitleEntryId := range subtitleEntryIds {
+		subtitleIds[i] = strconv.Itoa(subtitleEntryId)
 	}
 
 	return connect.NewResponse(&messages.SearchVideoResponse{
-    Id: strconv.FormatInt(int64(videoEntry.ID), 10),
-    Path: videoEntry.Filepath,
-    SubtitleIds: subtitleIds,
+		Id:          strconv.FormatInt(int64(videoEntry.ID), 10),
+		Path:        videoEntry.Filepath,
+		SubtitleIds: subtitleIds,
 	}), nil
 }

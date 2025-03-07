@@ -98,15 +98,15 @@ func (h WebServiceHandler) GetJobLogs(ctx context.Context, req *connect.Request[
 		jobLogQueryBuilder = jobLogQueryBuilder.Limit(int(*req.Msg.Limit))
 	}
 
-	jobLogEntries, err := jobLogQueryBuilder.
-		Order(joblogschema.ByID(sql.OrderDesc())).All(h.ctx)
+	jobLogEntryIds, err := jobLogQueryBuilder.
+		Order(joblogschema.ByID(sql.OrderDesc())).IDs(h.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get job log entries from database, err: %w", err)
 	}
 
-	ids := make([]string, len(jobLogEntries))
-	for i, jobLogEntry := range jobLogEntries {
-		ids[i] = strconv.Itoa(jobLogEntry.ID)
+	ids := make([]string, len(jobLogEntryIds))
+	for i, jobLogEntryId := range jobLogEntryIds {
+		ids[i] = strconv.Itoa(jobLogEntryId)
 	}
 
 	return connect.NewResponse(&messages.GetJobLogsResponse{Ids: ids}), nil

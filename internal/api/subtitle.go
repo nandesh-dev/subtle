@@ -74,16 +74,16 @@ func (h WebServiceHandler) GetSubtitle(ctx context.Context, req *connect.Request
 		return nil, fmt.Errorf("cannot get video entry from database, err: %w", err)
 	}
 
-	subtitleCueEntries, err := subtitleEntry.QueryCues().
+	subtitleCueEntryIds, err := subtitleEntry.QueryCues().
 		Order(subtitlecueschema.ByTimestampStart()).
-		All(h.ctx)
+		IDs(h.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get subtitle cue entries from database, err: %w", err)
 	}
 
-	subtitleCueIds := make([]string, len(subtitleCueEntries))
-	for i, subtitleCueEntry := range subtitleCueEntries {
-		subtitleCueIds[i] = strconv.Itoa(subtitleCueEntry.ID)
+	subtitleCueIds := make([]string, len(subtitleCueEntryIds))
+	for i, subtitleCueEntryId := range subtitleCueEntryIds {
+		subtitleCueIds[i] = strconv.Itoa(subtitleCueEntryId)
 	}
 
 	stage := messages.SubtitleStage_SUBTITLE_STAGE_UNSPECIFIED
@@ -132,15 +132,14 @@ func (h WebServiceHandler) GetSubtitleCue(ctx context.Context, req *connect.Requ
 		return nil, fmt.Errorf("cannot get subtitle cue entry from database, err: %w", err)
 	}
 
-	segmentEntries, err := subtitleCueEntry.QueryContentSegments().
-		All(h.ctx)
+	segmentEntryIds, err := subtitleCueEntry.QueryContentSegments().IDs(h.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get subtitle cue segment entries from database, err: %w", err)
 	}
 
-	segmentIds := make([]string, len(segmentEntries))
-	for i, segmentEntry := range segmentEntries {
-		segmentIds[i] = strconv.Itoa(segmentEntry.ID)
+	segmentIds := make([]string, len(segmentEntryIds))
+	for i, segmentEntryId := range segmentEntryIds {
+		segmentIds[i] = strconv.Itoa(segmentEntryId)
 	}
 
 	return connect.NewResponse(&messages.GetSubtitleCueResponse{
@@ -203,9 +202,9 @@ func (h WebServiceHandler) DeleteAllExportedSubtitleFiles(ctx context.Context, r
 	}
 
 	for _, exportedSubtitleEntry := range exportedSubtitleEntries {
-    if err := os.Remove(*exportedSubtitleEntry.ExportPath); err != nil {
-      fmt.Printf("ERROR DELETING SUBTITLE FILE, err: %v\n", err)
-    }
+		if err := os.Remove(*exportedSubtitleEntry.ExportPath); err != nil {
+			fmt.Printf("ERROR DELETING SUBTITLE FILE, err: %v\n", err)
+		}
 	}
 
 	return connect.NewResponse(&messages.DeleteAllExportedSubtitleFilesResponse{}), nil
